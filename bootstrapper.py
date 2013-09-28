@@ -60,6 +60,7 @@ class Config():
         pass
 
     def merge(self, config):
+        # return config.update(self.list())
         return dict(self.list() + config.items())
 
 
@@ -92,6 +93,9 @@ class Context():
     def __init__(self, context_file=None):
         self.context_file = context_file
         self.load()
+        config = Config()
+        self.context = config.merge(self.context)
+        print self.context
 
     def load(self):
         with open(self.context_file, 'r') as content_file:
@@ -187,26 +191,24 @@ class Bootstrapper():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Booyakasha!')
-    parser.add_argument('-t', '--template',
-                        default='gtrap.zip', help='Template file.')
+    parser = argparse.ArgumentParser(description='./bootstrapper.py -c example/bootstrap.json -t ~/.cookiejar/default/')
     parser.add_argument('-c', '--context-file',
                         dest="context_file",
                         required=True, help='Context file')
+    parser.add_argument('-t', '--template',
+                        default='~/.cookiejar/default/', help='Template file.')
     parser.add_argument('-o', '--output',
                         dest="output", default='.',
                         required=False, help='Output directory')
     args = parser.parse_args()
 
-    config = Config()
     # config.edit('author', 'goliatone')
     # config.dump()
     boot = Bootstrapper()
     boot.config(template=args.template,
                 output=args.output,
                 context_file=args.context_file)
-    print config.merge(boot.context.context)
-    # boot.create()
+    boot.create()
 
 if __name__ == '__main__':
     try:
