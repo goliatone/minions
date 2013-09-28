@@ -5,7 +5,7 @@ import sys
 from sys import platform
 import argparse
 import traceback
-import zipfile
+# import zipfile
 import json
 import tempfile
 import contextlib
@@ -13,6 +13,7 @@ import shutil
 import os
 from subprocess import call, Popen, PIPE
 import re
+import ConfigParser
 
 """
 TODO: Integrate into MinionTasks
@@ -27,6 +28,39 @@ E) Add on_created_hook.py in template src dir
 F) Take -C "bower install && npm install" post cmd
 G) Add exclude files.
 """
+
+
+class Config():
+    def __init__(self, path='~/.tmplater'):
+        self.path = os.path.expanduser(path)
+        self.config = ConfigParser.RawConfigParser()
+        self.config.read(self.path)
+
+    def edit(self, key, value, section='config'):
+        cfgfile = open(self.path, 'w')
+        if not self.config.has_section(section):
+            self.config.add_section(section)
+        self.config.set(section, key, value)
+        self.config.write(cfgfile)
+        cfgfile.close()
+
+    def list(self, section='config'):
+        return self.config.items(section)
+
+    def dump(self):
+        for section in self.config.sections():
+            print section
+            for option in self.config.options(section):
+                print " ", option, "=", self.config.get(section, option)
+
+    def read(self, key, section='config'):
+        return self.config.get(section, key)
+
+    def load(self):
+        pass
+
+    def merge(self, config):
+        return dict(self.list() + config.items())
 
 
 class Utils():
@@ -164,11 +198,15 @@ def main():
                         required=False, help='Output directory')
     args = parser.parse_args()
 
+    config = Config()
+    # config.edit('author', 'goliatone')
+    # config.dump()
     boot = Bootstrapper()
     boot.config(template=args.template,
                 output=args.output,
                 context_file=args.context_file)
-    boot.create()
+    print config.merge(boot.context.context)
+    # boot.create()
 
 if __name__ == '__main__':
     try:
