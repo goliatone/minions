@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # http://stackoverflow.com/questions/15583870/mixing-positional-and-optional-arguments-in-argparse
 import sys
+from sys import platform
 import argparse
 import traceback
 import zipfile
@@ -10,7 +11,26 @@ import tempfile
 import contextlib
 import shutil
 import os
-from subprocess import call
+from subprocess import call, Popen, PIPE
+import re
+
+
+class Utils():
+    def is_binary(self, path):
+        if platform.startswith('win'):
+            return self.is_binary_win(path)
+        return self.is_binary_unx(path)
+
+    def is_binary_win(self, path):
+        chrs = [7, 8, 9, 10, 12, 13, 27] + range(0x20, 0x100)
+        textchars = ''.join(map(chr, chrs))
+        b = open(path).read(1024)
+        return bool(b.translate(None, textchars))
+
+    def is_binary_unx(self, path):
+        args = ["file", '-i', '-b', path]
+        o = Popen(args, stdout=PIPE).stdout.read()
+        return re.sarch(r'text', o) is None
 
 
 class Context():
