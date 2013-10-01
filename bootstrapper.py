@@ -32,12 +32,22 @@ G) Add exclude files.
 
 class Config():
     def __init__(self, path='~/.tmplater'):
-        self.path = os.path.expanduser(path)
+        if path.find('~'):
+            self.path = os.path.expanduser(path)
+        else:
+            self.path
+
         self.config = ConfigParser.RawConfigParser()
         self.config.read(self.path)
+        # self.list()
 
     def edit(self, key, value, section='config'):
-        cfgfile = open(self.path, 'w')
+        try:
+            cfgfile = open(self.path, 'w')
+        except Exception:
+            print "Error"
+            return
+
         if not self.config.has_section(section):
             self.config.add_section(section)
         self.config.set(section, key, value)
@@ -92,9 +102,11 @@ class Context():
     """
     def __init__(self, context_file=None):
         self.context_file = context_file
-        self.load()
+        if context_file:
+            self.load()
         config = Config()
         self.context = config.merge(self.context)
+        self.config = config
         print self.context
 
     def load(self):
@@ -194,7 +206,7 @@ def main():
     parser = argparse.ArgumentParser(description='./bootstrapper.py -c example/bootstrap.json -t ~/.cookiejar/default/')
     parser.add_argument('-c', '--context-file',
                         dest="context_file",
-                        required=True, help='Context file')
+                        required=False, help='Context file')
     parser.add_argument('-t', '--template',
                         default='~/.cookiejar/default/', help='Template file.')
     parser.add_argument('-o', '--output',
@@ -208,7 +220,7 @@ def main():
     boot.config(template=args.template,
                 output=args.output,
                 context_file=args.context_file)
-    boot.create()
+    # boot.create()
 
 if __name__ == '__main__':
     try:
