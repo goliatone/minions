@@ -43,7 +43,7 @@ nosetests.xml
 
 # SublimeText project files
 *.sublime-workspace
-
+*.sublime-project
 
 /Users/emilianoburgos/Development/PYTHON/minions
 ### /Users/emilianoburgos/.gitignore-boilerplates/Global/OSX.gitignore
