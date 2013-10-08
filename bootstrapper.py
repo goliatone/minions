@@ -25,7 +25,7 @@ D) Add new templates:
    - We clone from github // bitbucket?
    - We move from local dir.
 E) Add on_created_hook.py in template src dir
-F) Take -C "bower install && npm install" post cmd
+F) Take -C "bower install && npm install" StopIteration(" error") cmd
 G) Add exclude files.
 """
 
