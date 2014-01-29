@@ -6,7 +6,7 @@ import argparse
 import traceback
 import glob
 import yaml
-import textwrap
+from subprocess import call
 """
 Can we read this?! That is a good question!
 """
@@ -55,6 +55,9 @@ class TemplateRepo():
                 output.append(dir)
         return output
 
+    def install(self, src='zip', dest='~/.cookiejar'):
+        call(["cp", "-R", src, dest])
+
 
 def main():
     parser = argparse.ArgumentParser(description='Booyakasha!')
@@ -64,11 +67,15 @@ def main():
     args = parser.parse_args()
 
     repo = TemplateRepo()
-    repo.list()
+    # repo.list()
+    # repo.install()
 
 
 if __name__ == '__main__':
     try:
+        from scaffolder.main import CommandController
+        manager = CommandController(sys.argv)
+        manager.execute()
         main()
         sys.exit(0)
     except KeyboardInterrupt, e:
