@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import sys
 from optparse import OptionParser
 from optparse import make_option
@@ -12,19 +13,24 @@ COMMANDS = [
 ]
 
 class CommandController():
-    def __init__(self, argv=None, stdout=None, stderr=None):
-        if not argv:
-            argv = sys.argv
-        self.prog = argv[0]
-        self.command = argv[1]
-        self.argv = argv[2:]
 
+    DEFAULT_ARGUMENT = ['--help']
+
+    def __init__(self, stdout=None, stderr=None):
         self.stdout = stdout or sys.stdout
         self.stderr = stderr or sys.stderr
 
-    def execute(self):
-        if not len(self.argv):
+        self.prog = ''
+        self.command = ''
+        self.argv = ()
+
+    def execute(self, argv=None):
+        argv = sys.argv if not argv else argv
+
+        if len(argv) == 1:
             return self.show_help()
+
+        self.parse_argv(argv)
 
         command = self.command
         arguments = self.argv
@@ -38,6 +44,15 @@ class CommandController():
 
         command = Command(stdout=self.stdout, stderr=self.stderr, cmd=cmd)
         command.run_from_argv(argv)
+
+    def parse_argv(self, argv):
+        self.argv = argv
+        # This should always be here
+        self.prog = argv[0]
+        #Expect subcommand else would have show_help
+        self.command = argv[1]
+        # We want to store the arguments or show help
+        self.argv = argv[2:] or CommandController.DEFAULT_ARGUMENT
 
     def get_command_class(self, cmd):
         try:
@@ -106,21 +121,29 @@ class BaseCommand():
         return self.option_list
 
     def get_parser(self, prog_name, subcommand):
+        print "Prog name {0}".format(prog_name)
         parser = OptionParser(
-            prog=prog_name,
-            # usage=self.usage(),
-            # version=self.version(),
+            prog=subcommand,
+            usage=self.get_usage(),
+            version=self.get_version(),
             option_list=sorted(self.get_option_list())
         )
         return parser
+
+    def get_usage(self):
+        return "%prog command"
+
+    def get_version(self):
+        from scaffolder import get_version
+        return get_version()
 
     def print_help(self, prog_name, subcommand):
         parser = self.get_parser(prog_name, subcommand)
         parser.print_help()
 
     def run_from_argv(self, argv):
-        parser = self.get_parser(argv[0], argv[1])
-        options, args = parser.parse_args(sys.argv[2:])
+        parser = self.get_parser(sys.argv[0], sys.argv[1])
+        options, args = parser.parse_args(argv)
         self.execute(*args, **options.__dict__)
         # self.execute(argv)
 
