@@ -9,8 +9,8 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    manager = CommandController(argv)
-    manager.execute()
+    manager = CommandController()
+    manager.execute(argv)
     return 0
 
 if __name__ == '__main__':
