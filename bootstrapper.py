@@ -5,7 +5,6 @@ import sys
 from sys import platform
 import argparse
 import traceback
-# import zipfile
 import json
 import tempfile
 import contextlib
@@ -14,6 +13,7 @@ import os
 from subprocess import call, Popen, PIPE
 import re
 import ConfigParser
+# import zipfile
 
 """
 TODO: Integrate into MinionTasks
@@ -32,13 +32,21 @@ G) Add exclude files.
 
 class Config():
     def __init__(self, path='~/.tmplater'):
-        if path.find('~'):
+        if '~' in path:
             self.path = os.path.expanduser(path)
         else:
-            self.path
+            self.path = path
 
+        if not os.path.isfile(self.path):
+            print "File {0} does not exist".format(self.path)
+
+        print "Config loading {0}".format(path)
         self.config = ConfigParser.RawConfigParser()
-        self.config.read(self.path)
+        ok = self.config.read(self.path)
+        # fp = open(self.path)
+
+        print "Read file: {0}".format(ok)
+        # print "Config: {0}".format(self.config.get('author', 'config'))
         # self.list()
 
     def edit(self, key, value, section='config'):
@@ -50,12 +58,20 @@ class Config():
 
         if not self.config.has_section(section):
             self.config.add_section(section)
-        self.config.set(section, key, value)
+
+        if value == None:
+            self.config.remove_option(section, key)
+        else:
+            self.config.set(section, key, value)
+
         self.config.write(cfgfile)
         cfgfile.close()
 
     def list(self, section='config'):
-        return self.config.items(section)
+        print "Config list: {0}".format(section)
+        if self.config.has_section(section):
+            return self.config.items(section)
+        return dict()
 
     def dump(self):
         for section in self.config.sections():
@@ -70,7 +86,9 @@ class Config():
         pass
 
     def merge(self, config):
-        # return config.update(self.list())
+        print "Config merge: {0}".format(config)
+        if not self.config.has_section('config'):
+            return config
         return dict(self.list() + config.items())
 
 
@@ -107,7 +125,7 @@ class Context():
         config = Config()
         self.context = config.merge(self.context)
         self.config = config
-        print self.context
+        print "Context: {0}".format(self.context)
 
     def load(self):
         with open(self.context_file, 'r') as content_file:
@@ -149,8 +167,6 @@ class Template():
 
 class Bootstrapper():
     def config(self, template=None, context_file=None, output=None):
-        print template
-        print context_file
         self.src = template
         self.context = Context(context_file)
         self.template = Template(self.context.get_context())
@@ -179,6 +195,13 @@ class Bootstrapper():
             call(["cp", "-R", out+'/', self.out_dir])
 
     def list_files(self, path):
+        """
+
+
+        @rtype : object
+        @param path: 
+        @return: 
+        """
         output = []
         for root, dirs, files in os.walk(path):
             print('{}/'.format(root))
@@ -186,15 +209,7 @@ class Bootstrapper():
                 output.append('{}/{}'.format(root, f))
                 print('{}/{}'.format(root, f))
         return output
-
-    def clean(self, paths, tmp):
-        print "Cleaning up:"
-        print tmp
-        for p in paths:
-            os.remove(p)
-        print paths
-        pass
-
+    
     @contextlib.contextmanager
     def make_tmp_dir(self):
         temp_dir = tempfile.mkdtemp()
@@ -214,14 +229,12 @@ def main():
                         required=False, help='Output directory')
     args = parser.parse_args()
 
-    # config.edit('author', 'goliatone')
-    # config.dump()
     boot = Bootstrapper()
     boot.config(template=args.template,
                 output=args.output,
                 context_file=args.context_file)
     # boot.create()
-
+    boot.context.config.edit('kiko', None)
 if __name__ == '__main__':
     try:
         main()
