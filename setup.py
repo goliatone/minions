@@ -39,7 +39,7 @@ setup(
     package_dir={'scaffolder': 'scaffolder'},
     entry_points={
         'console_scripts':[
-            'scaffolder = scaffolder.main:main',
+            'scaffolder = scaffolder.cli:run',
         ]
     },
     include_package_data=True,
