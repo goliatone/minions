@@ -20,6 +20,9 @@ class CommandMeta(object):
         self.aliases = aliases
         self.parser = parser or optparse.OptionParser()
 
+    def execute(self):
+        pass
+
 
 class CommandOptionParser(optparse.OptionParser):
     """A variant of OptionParser that parses commands and their
@@ -45,7 +48,6 @@ class CommandOptionParser(optparse.OptionParser):
             kwargs['usage'] = """
   %prog COMMAND [ARGS...]
   %prog help COMMAND"""
-        kwargs['description'] = "Hola %prog, not sure what is this"
         # Super constructor.
         optparse.OptionParser.__init__(self, *args, **kwargs)
 
@@ -144,7 +146,8 @@ class CommandOptionParser(optparse.OptionParser):
 
         suboptions, subargs = subcommand.parser.parse_args(args)
 
-        if subcommand is self._HelpSubcommand:
+        #we entered "help" command:
+        if subcommand is self._HelpCommandMeta:
             if subargs:
                 # particular
                 cmdname = subargs[0]
@@ -153,7 +156,6 @@ class CommandOptionParser(optparse.OptionParser):
                 self.exit()
             else:
                 # general
-                print "HERE {0}".format(subcommand)
                 self.print_help()
                 self.exit()
 
@@ -161,41 +163,77 @@ class CommandOptionParser(optparse.OptionParser):
 
 # Smoke test.
 if __name__ == '__main__':
-    # Some commands.
+    #Create "add" command meta
     add_cmd = CommandMeta('add',
-        optparse.OptionParser(usage='%prog [OPTIONS] FILE...'),
-        'add the specified files on the next commit')
+                          optparse.OptionParser(usage='%prog <== ADD [OPTIONS] FILE...'),
+                          'add the specified files on the next commit'
+    )
 
-    add_cmd.parser.add_option('-n', '--dry-run', dest='dryrun',
-        help='do not perform actions, just print output',
-        action='store_true')
+    #add options to "add" command
+    add_cmd.parser.add_option('-n',
+                              '--dry-run',
+                              dest='dryrun',
+                              help='do not perform actions, just print output',
+                              action='store_true'
+    )
 
+    #Create "commit" command meta
     commit_cmd = CommandMeta('commit',
-        optparse.OptionParser(usage='%prog [OPTIONS] [FILE...]'),
-        'commit the specified files or all outstanding changes',
-        ('ci',))
+                             optparse.OptionParser(usage='%prog <== COMMIT [OPTIONS] [FILE...]'),
+                             'commit the specified files or all outstanding changes',
+                            ('ci',)
+    )
+    commit_cmd.parser.add_option('-i',
+                                 '--interactive',
+                                 dest='interactive',
+                                 help='This is just a kaka option',
+                                 )
 
-    # A few dummy commands for testing the help layout algorithm.
+    def trigger(*args, **kwargs):
+        print 'trigger called {0} and {1}'.format(args, kwargs)
+
+    commit_cmd.parser.add_option('-k',
+                                 '--kaka',
+                                 dest='kaka',
+                                 help='This is just a kaka option',
+                                 action="callback",
+                                 callback=trigger,
+                                 )
+    def execute(self, *args, **kwargs):
+        print 'execute called {0} and {1}'.format(args, kwargs)
+
+    commit_cmd.execute = execute
+
+    #Create "xxx" command meta
     long_cmd = CommandMeta('very_very_long_command_name',
-        optparse.OptionParser(),
-        'description should start on next line')
-    long_help_cmd = CommandMeta('somecmd', optparse.OptionParser(),
-        'very long help text should wrap to the next line at which point '
-        'the indentation should match the previous line',
-        ('history',))
+                           optparse.OptionParser(),
+                           'description should start on next line')
+
+    #Create "somcmd" command meta:
+    long_help_cmd = CommandMeta('somecmd',
+                                optparse.OptionParser(),
+                                'very long help text should wrap to the next line at which point '
+                                'the indentation should match the previous line',
+                                ('history',)
+    )
 
     # Set up the global parser and its options.
     parser = CommandOptionParser(
-        commands = (add_cmd, commit_cmd, long_cmd, long_help_cmd)
+        commands= (add_cmd, commit_cmd, long_cmd, long_help_cmd)
     )
-    parser.add_option('-R', '--repository', dest='repository',
+    parser.add_option('-R', '--repository',
+                      dest='repository',
                       help='repository root directory or symbolic path name',
                       metavar='PATH')
-    parser.add_option('-v', dest='verbose', help='enable additional output',
+    parser.add_option('-v',
+                      dest='verbose',
+                      help='enable additional output',
                       action='store_true')
 
     # Parse the global options and the subcommand options.
     options, subcommand, suboptions, subargs = parser.parse_args()
+
+    subcommand.execute(subargs, suboptions)
 
     # Here, we dispatch based on the identity of subcommand. Of course,
     # one could instead add a "func" property to all the commands
