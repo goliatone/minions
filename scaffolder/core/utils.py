@@ -1,5 +1,10 @@
 
 def import_class(class_path):
+    """
+    Imports a class from a string.
+    @param class_path:
+    @return: @raise Exception:
+    """
     segments = class_path.split('.')
     module = '.'.join(segments[:-1])
     class_name = segments[-1]
