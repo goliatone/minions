@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from optparse import make_option
-from scaffolder.cli import BaseCommand
+from scaffolder.core.commands import BaseCommand
 from scaffolder.vcs import VCS
 
 
@@ -26,6 +26,10 @@ class VcsCommand(BaseCommand):
             metavar="BUCKET"
         ),
     )
+    class Meta():
+        description = 'hola'
+        help = 'something goes here'
+
     def run(self, *args, **options):
         url = options.get('url')
         tgt = options.get('output')
