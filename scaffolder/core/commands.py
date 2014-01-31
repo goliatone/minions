@@ -7,13 +7,14 @@ from optparse import OptionParser
 from optparse import make_option
 from scaffolder.core.utils import import_class
 from scaffolder.core.optparser import CommandMeta
+from scaffolder.core.optparser import CommandOptionParser
+
 
 COMMANDS = [
-    'bootstrap',
     'template',
-    'config',
     'vcs'
 ]
+
 
 class CommandController():
 
@@ -26,6 +27,9 @@ class CommandController():
         self.prog = ''
         self.command = ''
         self.argv = ()
+        #Make CliApplication, instantiate a new CommandController and set
+        self.description = "The program %prog has the following commands"
+        self.parser = CommandOptionParser(description=self.description)
 
 
     def execute(self, argv=None):
@@ -81,19 +85,9 @@ class CommandController():
         self.show_help()
         sys.exit(-1)
 
-    def show_help(self):
-        output = [
-            'Usage %s subcommand [options] [args]' % self.command,
-            '',
-            'Available commands:',
-            '',
-        ]
+    def show_help(self, load_commands=True):
 
-        for cmd in COMMANDS:
-            output.append(' %s' % cmd)
-
-        output += ['', '']
-        self.stdout.write(u'\n'.join(output))
+        return self.stdout.write(self.parser.format_help())
 
 
 class BaseCommand():
@@ -105,6 +99,10 @@ class BaseCommand():
         make_option('--traceback', action='store_true', dest='traceback',
                     default=True, help='Print traceback in error')
     )
+
+    class Meta():
+        help = 'something goes here'
+        description = 'hola'
 
     def __init__(self, stdout=None, stderr=None, cmd=None, parser=None):
         self.cmd = cmd
@@ -133,6 +131,7 @@ class BaseCommand():
             version=self.get_version(),
             option_list=sorted(self.get_option_list())
         )
+        parser.disable_interspersed_args()
         return parser
 
     def get_usage(self):
