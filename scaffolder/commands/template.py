@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from scaffolder.cli import BaseCommand
+from scaffolder.core.commands import BaseCommand
 
 class TemplateCommand(BaseCommand):
     pass
