@@ -100,33 +100,3 @@ class VCS():
             subprocess.check_call([vcs, 'checkout', checkout_branch], cwd=target_dir)
 
         return repo_path
-
-def main():
-    parser = argparse.ArgumentParser(description='clone a repo')
-    parser.add_argument('-u', '--url',
-                        dest="url",
-                        required=True, help='Context file')
-    parser.add_argument('-o', '--output',
-                        dest="output", default='.',
-                        required=False, help='Output directory')
-    args = parser.parse_args()
-
-    url = args.url
-    target = args.output
-
-    boot = VCS(url)
-    boot.clone(target_dir=target)
-    # boot.create()
-
-if __name__ == '__main__':
-    try:
-        main()
-        sys.exit(0)
-    except KeyboardInterrupt, e:
-        raise e
-    except SystemExit, e:
-        raise e
-    except Exception, e:
-        print str(e)
-        traceback.print_exc()
-        sys.exit(1)
