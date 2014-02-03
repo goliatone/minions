@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import optparse
+from optparse import make_option
 import textwrap
+
 
 class CommandMeta(object):
     """A subcommand of a root command-line application that may be
@@ -16,13 +18,17 @@ class CommandMeta(object):
         given, it defaults to a new, empty OptionParser.
         """
         self.name = name
+
         self.help = help
+
         self.aliases = aliases
+
         self.parser = parser or optparse.OptionParser()
 
-    def execute(self):
-        pass
+        self.option_list = ()
 
+    def get_option_list(self):
+        return sorted(self.option_list, reverse=True)
 
 class CommandOptionParser(optparse.OptionParser):
     """A variant of OptionParser that parses commands and their
@@ -45,19 +51,19 @@ class CommandOptionParser(optparse.OptionParser):
 
         # A more helpful default usage.
         if 'usage' not in kwargs:
-            kwargs['usage'] = """
-  %prog COMMAND [ARGS...]
-  %prog help COMMAND"""
+            kwargs['usage'] = self.make_usage()
         # Super constructor.
         optparse.OptionParser.__init__(self, *args, **kwargs)
 
-        # Adjust the help-visible name of each subcommand.
-        for subcommand in self.commands:
-            subcommand.parser.prog = '%s %s' % \
-                    (self.get_prog_name(), subcommand.name)
-
         # Our root parser needs to stop on the first unrecognized argument.
         self.disable_interspersed_args()
+
+    def make_usage(self):
+        usage = """
+  %prog MINION [ARGS...]
+  %prog help MINION
+      """
+        return usage
 
     def add_subcommand(self, cmd):
         """Adds a CommandMeta object to the parser's list of commands.
@@ -218,20 +224,20 @@ if __name__ == '__main__':
     )
 
     # Set up the global parser and its options.
-    parser = CommandOptionParser(
+    cmd_parser = CommandOptionParser(
         commands= (add_cmd, commit_cmd, long_cmd, long_help_cmd)
     )
-    parser.add_option('-R', '--repository',
+    cmd_parser.add_option('-R', '--repository',
                       dest='repository',
                       help='repository root directory or symbolic path name',
                       metavar='PATH')
-    parser.add_option('-v',
+    cmd_parser.add_option('-v',
                       dest='verbose',
                       help='enable additional output',
                       action='store_true')
 
     # Parse the global options and the subcommand options.
-    options, subcommand, suboptions, subargs = parser.parse_args()
+    options, subcommand, suboptions, subargs = cmd_parser.parse_args()
 
     subcommand.execute(subargs, suboptions)
 
