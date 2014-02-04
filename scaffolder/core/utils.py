@@ -1,9 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import tempfile
 import zipfile
+import re
+from sys import platform
+from subprocess import Popen, PIPE
 from scaffolder.vcs import VCS
 
+
+class Utils():
+    @classmethod
+    def is_binary(cls, path):
+        if platform.startswith('win'):
+            return cls.is_binary_win(path)
+        return cls.is_binary_unx(path)
+
+    @classmethod
+    def is_binary_win(cls, path):
+        chrs = [7, 8, 9, 10, 12, 13, 27] + range(0x20, 0x100)
+        text_chars = ''.join(map(chr, chrs))
+        b = open(path).read(1024)
+        return bool(b.translate(None, text_chars))
+
+    @classmethod
+    def is_binary_unx(cls, path):
+        args = ["file", '-i', '-b', path]
+        o = Popen(args, stdout=PIPE).stdout.read()
+        return re.search(r'text', o) is None
 
 def import_class(class_path):
     """
