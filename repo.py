@@ -10,9 +10,12 @@ from subprocess import call
 """
 Can we read this?! That is a good question!
 """
+from textwrap import fill
+from clint.textui import puts, indent, colored
+from scaffolder.core.utils import clone_url, extract_directory
 
 
-class TemplateRepo():
+class ProjectTemplate():
     INIT_FILE = "__init__.*"
 
     def __init__(self):
@@ -32,10 +35,17 @@ class TemplateRepo():
         for name in self.metadata:
             info = self.metadata[name]
             info.setdefault('Description', 'This template has no description')
-            print "\t\t - {Template}\n\t\t {Description}".format(**info)
+            # " %-45s %-15s %15s" % (template, status, file_type)
+            title = "- {Template}:\n".format(**info)
+            desc = "{Description}".format(**info)
+            desc = fill(desc, width=70, initial_indent="  ", subsequent_indent="  ")
+            puts(colored.green(
+                title+desc
+            ))
+
 
     def get_template_info(self, path):
-        init_file = os.path.join(path, TemplateRepo.INIT_FILE)
+        init_file = os.path.join(path, ProjectTemplate.INIT_FILE)
         template = os.path.basename(path)
         content = init_file
         file = glob.glob(init_file)
@@ -56,6 +66,15 @@ class TemplateRepo():
         return output
 
     def install(self, src='zip', dest='~/.cookiejar'):
+        #Check if dest is empty, if not, promt?
+        #check if src is valid file, or dest valid file.
+        #most of the time, dest should be default.
+        #check to see if src is zip, or if src is vcs.
+
+        #TODO: Review this!!!
+        src, dest = clone_url(src_path=src, src_path=src)
+        src, dest = extract_directory(src_path=src, src_path=src)
+
         call(["cp", "-R", src, dest])
 
 
@@ -66,16 +85,16 @@ def main():
     parser.add_argument('-B', '--bar', help='bar')
     args = parser.parse_args()
 
-    repo = TemplateRepo()
+    repo = ProjectTemplate()
     # repo.list()
-    # repo.install()
+    repo.install()
 
 
 if __name__ == '__main__':
     try:
         from scaffolder.main import CommandController
-        manager = CommandController(sys.argv)
-        manager.execute()
+        # manager = CommandController(sys.argv)
+        # manager.execute()
         main()
         sys.exit(0)
     except KeyboardInterrupt, e:
