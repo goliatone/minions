@@ -119,7 +119,7 @@ class Context():
     in templated files and paths.
     """
     def __init__(self, context_file=None):
-        self.context_file = context_file
+        self.context_file = os.path.expanduser(context_file)
         if context_file:
             self.load()
         config = Config()
@@ -167,7 +167,7 @@ class Template():
 
 class Bootstrapper():
     def config(self, template=None, context_file=None, output=None):
-        self.src = template
+        self.src = os.path.expanduser(template)
         self.context = Context(context_file)
         self.template = Template(self.context.get_context())
         self.context.set_var('__src__', 'output')
@@ -218,7 +218,8 @@ class Bootstrapper():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='./bootstrapper.py -c example/bootstrap.json -t ~/.cookiejar/default/')
+    parser = argparse.ArgumentParser(description='./bootstrapper.py -c example/bootstrap.json\
+     -t ~/.cookiejar/default/')
     parser.add_argument('-c', '--context-file',
                         dest="context_file",
                         required=False, help='Context file')
