@@ -27,7 +27,7 @@ class ProjectTemplate():
         dirs = self.list_dirs(path)
         for dir in dirs:
             if os.path.isdir(dir):
-                self.get_template_info(dir)
+                self.load_metadata(dir)
         self.print_metadata()
 
     def print_metadata(self):
@@ -44,7 +44,7 @@ class ProjectTemplate():
             ))
 
 
-    def get_template_info(self, path):
+    def load_metadata(self, path):
         init_file = os.path.join(path, ProjectTemplate.INIT_FILE)
         template = os.path.basename(path)
         content = init_file
