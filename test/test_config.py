@@ -1,12 +1,13 @@
-from nose.tools import assert_equals
-from nose.tools import raises
 import os
+
+from nose.tools import assert_equals
+
 # We need to include the core library...
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0, parentdir)
 ##
 
-from bootstrapper import Config
+from scaffolder.core.bootstrapper import Config
 
 
 CONFIG = [('autor', 'goliatone'),
