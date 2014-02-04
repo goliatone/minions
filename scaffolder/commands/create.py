@@ -22,7 +22,7 @@ class CreateCommand(BaseCommand):
            '-t',
            '--template',
            default='~/.cookiejar/default/',
-           help='Project Template file.',
+           help='Project Template file. Default to ~/.cookiejar/default',
            metavar="TEMPLATE"
         ),
         make_option(
