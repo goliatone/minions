@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import tempfile
+import zipfile
+from scaffolder.vcs import VCS
+
 
 def import_class(class_path):
     """
@@ -17,3 +23,27 @@ def import_class(class_path):
     Class = getattr(module, class_name)
 
     return Class
+
+def clone_url(src_path, tgt_path=None):
+    if not ".git" in src_path:
+        return src_path, tgt_path
+
+    if not tgt_path:
+        tgt_path = tempfile.mkdtemp()
+
+    vcs = VCS()
+    vcs.clone(url=src_path, target_dir=tgt_path)
+
+    return src_path, tgt_path
+
+def extract_directory(src_path, tgt_path=None):
+    if not ".zip" in src_path:
+        return src_path, tgt_path
+
+    if not tgt_path:
+        tgt_path = tempfile.mkdtemp()
+
+    with zipfile.ZipFile(src_path, "r") as z:
+        z.extractall(tgt_path)
+
+    return src_path, tgt_path
