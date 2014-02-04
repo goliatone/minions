@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # http://stackoverflow.com/questions/15583870/mixing-positional-and-optional-arguments-in-argparse
 import sys
-from sys import platform
+
 import argparse
 import traceback
 import json
@@ -10,10 +10,11 @@ import tempfile
 import contextlib
 import shutil
 import os
-from subprocess import call, Popen, PIPE
+from subprocess import call, Popen
 import re
-import ConfigParser
-# import zipfile
+from scaffolder.core.utils import Utils
+from scaffolder.core.config import Config
+
 
 """
 TODO: Integrate into MinionTasks
@@ -28,90 +29,6 @@ E) Add on_created_hook.py in template src dir
 F) Take -C "bower install && npm install" StopIteration(" error") cmd
 G) Add exclude files.
 """
-
-
-class Config():
-    def __init__(self, path='~/.tmplater'):
-        if '~' in path:
-            self.path = os.path.expanduser(path)
-        else:
-            self.path = path
-
-        if not os.path.isfile(self.path):
-            print "File {0} does not exist".format(self.path)
-
-        print "Config loading {0}".format(path)
-        self.config = ConfigParser.RawConfigParser()
-        ok = self.config.read(self.path)
-        # fp = open(self.path)
-
-        print "Read file: {0}".format(ok)
-        # print "Config: {0}".format(self.config.get('author', 'config'))
-        # self.list()
-
-    def edit(self, key, value, section='config'):
-        try:
-            cfgfile = open(self.path, 'w')
-        except Exception:
-            print "Error"
-            return
-
-        if not self.config.has_section(section):
-            self.config.add_section(section)
-
-        if value == None:
-            self.config.remove_option(section, key)
-        else:
-            self.config.set(section, key, value)
-
-        self.config.write(cfgfile)
-        cfgfile.close()
-
-    def list(self, section='config'):
-        print "Config list: {0}".format(section)
-        if self.config.has_section(section):
-            return self.config.items(section)
-        return dict()
-
-    def dump(self):
-        for section in self.config.sections():
-            print section
-            for option in self.config.options(section):
-                print " ", option, "=", self.config.get(section, option)
-
-    def read(self, key, section='config'):
-        return self.config.get(section, key)
-
-    def load(self):
-        pass
-
-    def merge(self, config):
-        print "Config merge: {0}".format(config)
-        if not self.config.has_section('config'):
-            return config
-        return dict(self.list() + config.items())
-
-
-class Utils():
-    @classmethod
-    def is_binary(cls, path):
-        if platform.startswith('win'):
-            return cls.is_binary_win(path)
-        return cls.is_binary_unx(path)
-
-    @classmethod
-    def is_binary_win(cls, path):
-        chrs = [7, 8, 9, 10, 12, 13, 27] + range(0x20, 0x100)
-        textchars = ''.join(map(chr, chrs))
-        b = open(path).read(1024)
-        return bool(b.translate(None, textchars))
-
-    @classmethod
-    def is_binary_unx(cls, path):
-        args = ["file", '-i', '-b', path]
-        o = Popen(args, stdout=PIPE).stdout.read()
-        return re.search(r'text', o) is None
-
 
 class Context():
     """
@@ -158,14 +75,25 @@ class Template():
         print "Dest: {}".format(pdest)
         if not os.path.isdir(pdest):
             os.makedirs(pdest)
+
         with open(path, 'r') as src, open(dest, 'w+') as new:
             # print src
             out = self.replace(src.read())
             # out = src.read().format(**self.context)
             new.write(out)
 
-
 class Bootstrapper():
+    """
+    @todo: We should get the path to the target's root dir.
+    @todo: Clean up after we execute hooks
+    A project template should have the following structure:
+    - template_name: Directory containing the Project Template
+      |- __init__.py Metadata file
+      |- hooks: Hooks directory
+      |-#project#: Root directory to the contents of the PT.
+    We need a ProjectTemplate class, to handle all that.
+    We need a Hook class, to execute hooks.
+    """
     def config(self, template=None, context_file=None, output=None):
         self.src = os.path.expanduser(template)
         self.context = Context(context_file)
@@ -186,25 +114,48 @@ class Bootstrapper():
             # with zipfile.ZipFile(self.src, 'r') as zfile:
                 # zfile.extractall(src)
             tfiles = self.list_files(src)
+            # self.run_hooks(self.out_dir, hook='pre')
             for f in tfiles:
-                print "test {}".format(f)
                 if f is Utils.is_binary(f):
                     continue
                 self.template.compile(f)
-            shutil.rmtree(src)
-            call(["cp", "-R", out+'/', self.out_dir])
+
+            self.clean_directory(src, out)
+            self.move_content(out, self.out_dir)
+            self.run_hooks(self.src, self.out_dir, hook='post')
+
+    def clean_directory(self, src, target):
+        shutil.rmtree(src)
+        #we should remove __init__ from target
+        print "Clean target temp directory: {}".format(target)
+        #we should remove hooks
+
+    def move_content(self, out=None, target=None):
+        if not target:
+            target = self.out_dir
+        call(["cp", "-R", out+'/', target])
+
+    def run_hooks(self, src, target, hook='post'):
+        script = os.path.join(src, 'hooks', 'post')
+        if not os.path.isfile(script):
+            return
+        try:
+            print "Executing in context {0}".format(target)
+            Popen(script, cwd=target)
+
+        except Exception, e:
+            print e
+
 
     def list_files(self, path):
         """
-
-
         @rtype : object
         @param path: 
         @return: 
         """
         output = []
         for root, dirs, files in os.walk(path):
-            print('{}/'.format(root))
+            print('{0}/'.format(root))
             for f in files:
                 output.append('{}/{}'.format(root, f))
                 print('{}/{}'.format(root, f))
