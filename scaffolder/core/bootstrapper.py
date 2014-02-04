@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # http://stackoverflow.com/questions/15583870/mixing-positional-and-optional-arguments-in-argparse
-import sys
-
-import argparse
-import traceback
 import json
 import tempfile
 import contextlib
@@ -14,7 +10,8 @@ from subprocess import call, Popen
 import re
 from scaffolder.core.utils import Utils
 from scaffolder.core.config import Config
-
+import glob
+import yaml
 
 """
 scaffolder create -c example/bootstrap.json -o /tmp/vcs/
@@ -32,12 +29,43 @@ F) Take -C "bower install && npm install" StopIteration(" error") cmd
 G) Add exclude files.
 """
 
+class ProjectTemplate():
+    def __init__(self, base_path='~/.cookiejar', default='default', metadata={}):
+        self.name = default
+        self.meta = metadata
+        self.base_path = base_path
+
+    def load(self):
+        pass
+    def set_path(self, path=None):
+        if not path:
+            return
+        self.base_path = path
+
+    def load_metadata(self, path=None):
+        if path:
+            self.set_path(path)
+        init_file = self.get_path(append=ProjectTemplate.INIT_FILE)
+        file = glob.glob(init_file)
+        if file:
+            content = open(file[0], 'r').readlines()
+            b = [i for i in range(len(content)) if content[i] == '"""\n']
+            if b.__len__() != 2:
+                return
+            content = "".join(content[b[0] + 1:b[1]])
+            self.metadata[self.name] = yaml.load(content)
+
+    def get_path(self, append=''):
+        return os.path.realpath(os.path.join(self.base_path, self.name, append))
+
+
 class Context():
     """
     Context object that holds values to be replaced
     in templated files and paths.
     """
     def __init__(self, context_file=None):
+        #@todo: Normalize path! realpath/expanduser
         self.context_file = os.path.expanduser(context_file)
         if context_file:
             self.load()
@@ -97,10 +125,14 @@ class Bootstrapper():
     We need a Hook class, to execute hooks.
     """
     def config(self, template=None, context_file=None, output=None):
+        output = os.path.expanduser(output)
         self.src = os.path.expanduser(template)
+
         self.context = Context(context_file)
         self.template = Template(self.context.get_context())
+
         self.context.set_var('__src__', 'output')
+
         if not os.path.isdir(output):
             os.makedirs(output)
         self.out_dir = output
