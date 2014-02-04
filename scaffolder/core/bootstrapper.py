@@ -17,6 +17,8 @@ from scaffolder.core.config import Config
 
 
 """
+scaffolder create -c example/bootstrap.json -o /tmp/vcs/
+
 TODO: Integrate into MinionTasks
 A) Given a src template dir and a context file,
    interpolate and put in out dir.
@@ -166,36 +168,3 @@ class Bootstrapper():
         temp_dir = tempfile.mkdtemp()
         yield temp_dir
         shutil.rmtree(temp_dir)
-
-
-def main():
-    parser = argparse.ArgumentParser(description='./bootstrapper.py -c example/bootstrap.json\
-     -t ~/.cookiejar/default/')
-    parser.add_argument('-c', '--context-file',
-                        dest="context_file",
-                        required=False, help='Context file')
-    parser.add_argument('-t', '--template',
-                        default='~/.cookiejar/default/', help='Template file.')
-    parser.add_argument('-o', '--output',
-                        dest="output", default='.',
-                        required=False, help='Output directory')
-    args = parser.parse_args()
-
-    boot = Bootstrapper()
-    boot.config(template=args.template,
-                output=args.output,
-                context_file=args.context_file)
-    # boot.create()
-    boot.context.config.edit('kiko', None)
-if __name__ == '__main__':
-    try:
-        main()
-        sys.exit(0)
-    except KeyboardInterrupt, e:
-        raise e
-    except SystemExit, e:
-        raise e
-    except Exception, e:
-        print str(e)
-        traceback.print_exc()
-        sys.exit(1)
