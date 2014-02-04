@@ -28,9 +28,9 @@ class VCS():
 
     def get_handler(self, url):
         #TODO: Make this for realz
-        if 'git@' in url:
+        if '.git' in url:
             return 'git'
-        elif 'hg@' in url:
+        elif 'hg@' or 'bitbucket.org' in url:
             return 'hg'
         else:
             raise Exception
@@ -45,14 +45,14 @@ class VCS():
         if not os.path.isdir(repo_path):
             return
         question = "Repo '{0}' exists, want to delete and clone?".format(repo_path)
-        if self.promt_question(question):
+        if self.prompt_question(question):
             print "Removing '{0}'...".format(repo_path)
             shutil.rmtree(repo_path)
         else:
             print "You don't want to overwrite. Bye!"
             sys.exit(0)
 
-    def promt_question(self, question, default=True):
+    def prompt_question(self, question, default=True):
         valid = {'yes':True, 'y':True, 'no':False, 'n':False}
 
         prompt = '[y/n]'
@@ -71,8 +71,6 @@ class VCS():
             else:
                 sys.stdout.write("Please respond with 'yes' or 'no'"\
                                  "(or 'y' or 'n')")
-
-
 
     def clone(self, url=None, checkout_branch=None, target_dir='.'):
         if url:
