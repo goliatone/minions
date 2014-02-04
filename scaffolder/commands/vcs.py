@@ -14,18 +14,17 @@ class VcsCommand(BaseCommand):
             "-u",
             "--url",
             dest="url",
-            default='default',
-            help='Database router id.',
-            metavar="DATABASE"
+            help='Clone URL, it can be SSH or HTTPS. Git only for now.',
+            metavar="REPO_URL"
         ),
 
         make_option(
-            "-o",
-            "--output",
-            dest="output",
+            "-t",
+            "--target",
+            dest="target",
             default='.',
-            help="S3 bucket name",
-            metavar="BUCKET"
+            help="Target directory where the repo will be cloned.",
+            metavar="TARGET"
         ),
     )
     class Meta():
@@ -33,12 +32,16 @@ class VcsCommand(BaseCommand):
         help = 'something goes here'
 
     def __init__(self, name, parser=None, help='', aliases=(), stdout=None, stderr=None):
-        help = 'VCS command help entry'
+        help = 'Command to clone github repos'
         aliases = ('git','hg',)
+        #TODO: Move to BaseCommand, create methods and have each subcommand override
         parser = OptionParser(
             version=self.get_version(),
             option_list=self.get_option_list(),
-            usage='\n  %prog {0} [OPTIONS] FILE...'.format(name)
+            usage='\n  %prog {0} [OPTIONS] FILE...'.format(name),
+            description='',
+            epilog=''
+
         )
         BaseCommand.__init__(self, name, parser=parser, help=help, aliases=aliases)
         # self.update_parser()
@@ -49,11 +52,9 @@ class VcsCommand(BaseCommand):
         self.parser.version = self.get_version()
         self.parser.option_list = sorted(self.get_option_list())
 
-
-
     def run(self, *args, **options):
         url = options.get('url')
-        tgt = options.get('output')
+        tgt = options.get('target')
 
         boot = VCS(url)
         boot.clone(target_dir=tgt)
