@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import sys
-from optparse import OptionParser
 from optparse import make_option
 from scaffolder.core.utils import import_class
 from scaffolder.core.optparser import CommandMeta
@@ -35,6 +33,7 @@ class CommandController():
 
 
     def register_command_names(self, command_names):
+        #TODO: Add support for aliases(?)
         for id in command_names:
             self.command_ids.append(id)
 
@@ -44,8 +43,6 @@ class CommandController():
         #TODO: We might want to use default command!!
         if len(argv) == 1:
             return self.show_help()
-        # TODO: We have to actually use self.parser.parse_args()
-        print "system argvs {0}".format(sys.argv)
         command, arguments = self.parse_argv(argv)
 
         self.run_command(command, arguments)
@@ -67,9 +64,6 @@ class CommandController():
         self.command = argv[1]
         # We want to store the arguments or show help
         self.argv = argv[2:] or CommandController.DEFAULT_ARGUMENT
-        print "prog {0}".format(self.prog)
-        print "command {0}".format(self.command)
-        print "self argv {0}".format(self.argv)
         return self.command, self.argv
 
     def get_command_class(self, cmd):
@@ -77,9 +71,8 @@ class CommandController():
             #module name
             module  = cmd.lower()
             #class name
-            Command = "{0}Command".format(module.title())
-            cmd_path = 'scaffolder.commands.' + module+'.'+Command
-            print "Command path {0}".format(cmd_path)
+            command = "{0}Command".format(module.title())
+            cmd_path = self.build_command_package(module, command)
 
             if isinstance(cmd_path, basestring):
                 Command = import_class(cmd_path)
@@ -87,8 +80,12 @@ class CommandController():
             return Command
 
         except Exception, e:
-            print "Error"
+            #TODO: Here we should try to load all Commands and
+            #get their aliases. OR Register the alias as well.
             self.exception_handler(e)
+
+    def build_command_package(self, module, command):
+        return 'scaffolder.commands.' + module+'.'+command
 
     def exception_handler(self, e):
         self.stderr.write(str(e)+'\n')
