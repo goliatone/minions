@@ -15,7 +15,7 @@ from clint.textui import puts, indent, colored
 from scaffolder.core.utils import clone_url, extract_directory
 
 
-class ProjectTemplate():
+class TemplatesManager():
     INIT_FILE = "__init__.*"
 
     def __init__(self):
@@ -45,7 +45,7 @@ class ProjectTemplate():
 
 
     def load_metadata(self, path):
-        init_file = os.path.join(path, ProjectTemplate.INIT_FILE)
+        init_file = os.path.join(path, TemplatesManager.INIT_FILE)
         template = os.path.basename(path)
         content = init_file
         file = glob.glob(init_file)
@@ -72,8 +72,8 @@ class ProjectTemplate():
         #check to see if src is zip, or if src is vcs.
 
         #TODO: Review this!!!
-        src, dest = clone_url(src_path=src, src_path=src)
-        src, dest = extract_directory(src_path=src, src_path=src)
+        src, dest = clone_url(src_path=src, tgt_path=dest)
+        src, dest = extract_directory(src_path=src, tgt_path=dest)
 
         call(["cp", "-R", src, dest])
 
@@ -85,9 +85,9 @@ def main():
     parser.add_argument('-B', '--bar', help='bar')
     args = parser.parse_args()
 
-    repo = ProjectTemplate()
-    # repo.list()
-    repo.install()
+    repo = TemplatesManager()
+    repo.list()
+    # repo.install()
 
 
 if __name__ == '__main__':
