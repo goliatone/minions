@@ -4,6 +4,8 @@
 import tempfile
 import zipfile
 import re
+from os import path
+import os
 from sys import platform
 from subprocess import Popen, PIPE
 from scaffolder.vcs import VCS
@@ -28,6 +30,15 @@ class Utils():
         args = ["file", '-i', '-b', path]
         o = Popen(args, stdout=PIPE).stdout.read()
         return re.search(r'text', o) is None
+
+    @classmethod
+    def normalize_path(cls, file_path, mkdir=False):
+        file_path = path.realpath(path.expanduser(file_path))
+        if mkdir and not path.isdir(file_path):
+            os.makedirs(file_path)
+        return file_path
+
+
 
 def import_class(class_path):
     """
