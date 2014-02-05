@@ -10,8 +10,7 @@ import re
 import glob
 import yaml
 from subprocess import call, Popen
-
-from scaffolder.core.utils import Utils
+from scaffolder.core.utils import Utils, cp_recursive, commonprefix
 from scaffolder.core.config import Config
 from scaffolder.core.hook import HookRunner
 
@@ -41,10 +40,10 @@ class TemplateOutput():
         self.path = Utils.normalize_path(path, mkdir=True)
 
     def move_to_target(self,project_template=None, target_path=None):
-        call(["cp", "-R", project_template, target_path])
+        cp_recursive(project_template, target_path)
 
     def move_content(self, src_path=None):
-        call(["cp", "-R", src_path+'/', self.path])
+        cp_recursive(src_path+'/', self.path)
 
 
 class ProjectTemplate():
@@ -88,8 +87,8 @@ class Context():
         if context_file:
             self.load()
         config = Config()
-        self.context = config.merge(self.context)
         self.config = config
+        self.context = config.merge(self.context)
         print "Context: {0}".format(self.context)
 
     def load(self):
@@ -112,6 +111,7 @@ class Template():
         self.path = Utils.normalize_path(path)
         self.name = os.path.basename(self.path)
         self.project_dir = project_dir
+        self.compiled = []
 
     def project_template(self):
         return os.path.join(self.path, self.project_dir)
@@ -136,8 +136,7 @@ class Template():
             self.compile_file(file)
 
     def compile_file(self, path):
-        print "Template, compile path: {}".format(path)
-        target_file = self.replace(path)
+        target_file = self.add_compiled_path(path)
         self.mkdir_target(target=target_file)
         self.replace_tokens(filename=target_file, path=path)
 
@@ -147,6 +146,14 @@ class Template():
             out = self.replace(src.read())
             # out = src.read().format(**self.context)
             new.write(out)
+
+    def add_compiled_path(self, path):
+        file = self.replace(path)
+        self.compiled.append(file)
+        return file
+
+    def get_target_root(self):
+        return os.path.basename(commonprefix(self.compiled).strip('/'))
 
 
 class Bootstrapper():
@@ -201,11 +208,13 @@ class Bootstrapper():
             self.clean_directory(src, out)
 
             self.output.move_content(src_path=out)
-
+            print "Move content {}".format(out)
             self.hook.run(path=self.template.path,
                           cwd=self.output.path,
                           hook='post')
-            self.run_hooks(self.template.path, self.output.path, hook='post')
+            cwd = self.template.get_target_root()
+            cwd = os.path.join(self.output.path, cwd)
+            self.run_hooks(self.template.path, cwd, hook='post')
 
     def clean_directory(self, src, target):
         shutil.rmtree(src)
