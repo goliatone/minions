@@ -15,15 +15,15 @@ class CreateCommand(BaseCommand):
            '--context-file',
            dest="context_file",
            help='Context file',
-           metavar="CONTEXT FILE"
+           metavar="CONTEXT_FILE"
         ),
 
         make_option(
            '-t',
-           '--template',
+           '--template_path',
            default='~/.cookiejar/default/',
            help='Project Template file. Default to ~/.cookiejar/default',
-           metavar="TEMPLATE"
+           metavar="TEMPLATE_PATH"
         ),
         make_option(
             '-o',
@@ -57,11 +57,11 @@ class CreateCommand(BaseCommand):
 
     def run(self, *args, **options):
         out = options.get('output')
-        tpl = options.get('template')
+        tpl = options.get('template_path')
         ctx = options.get('context_file')
 
         boot = Bootstrapper()
-        boot.config(template=tpl,
+        boot.config(template_path=tpl,
                     output=out,
                     context_file=ctx
         )
