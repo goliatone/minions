@@ -6,12 +6,14 @@ import tempfile
 import contextlib
 import shutil
 import os
-from subprocess import call, Popen
 import re
-from scaffolder.core.utils import Utils
-from scaffolder.core.config import Config
 import glob
 import yaml
+from subprocess import call, Popen
+
+from scaffolder.core.utils import Utils
+from scaffolder.core.config import Config
+from scaffolder.core.hook import HookRunner
 
 """
 scaffolder create -c example/bootstrap.json -o /tmp/vcs/
@@ -38,8 +40,8 @@ class TemplateOutput():
             return
         self.path = Utils.normalize_path(path, mkdir=True)
 
-    def copy_template_files_in_destination(self,template_path=None, target_path=None):
-        call(["cp", "-R", template_path, target_path])
+    def move_to_target(self,project_template=None, target_path=None):
+        call(["cp", "-R", project_template, target_path])
 
     def move_content(self, src_path=None):
         call(["cp", "-R", src_path+'/', self.path])
@@ -105,10 +107,14 @@ class Context():
 
 
 class Template():
-    def __init__(self, context=None, path=None):
+    def __init__(self, context=None, path=None, project_dir="#project#"):
         self.context = context
         self.path = Utils.normalize_path(path)
         self.name = os.path.basename(self.path)
+        self.project_dir = project_dir
+
+    def project_template(self):
+        return os.path.join(self.path, self.project_dir)
 
     def replace(self, template):
         def _replace(match):
@@ -116,25 +122,32 @@ class Template():
             return self.context.get(word, match.group())
         return re.sub(r'#(\w+)#', _replace, template)
 
-    def compile(self, path):
-        # dest = path.format(**self.context)
-        dest = self.replace(path)
-        pdest = os.path.dirname(dest)
-        print "Dest: {}".format(pdest)
-        if not os.path.isdir(pdest):
-            os.makedirs(pdest)
+    def mkdir_target(self, target=None):
+        path = os.path.dirname(target)
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        print "Dest: {}".format(path)
+        return path
 
-        with open(path, 'r') as src, open(dest, 'w+') as new:
+    def compile(self, file_paths):
+        for file in file_paths:
+            if Utils.is_binary(file):
+                continue
+            self.compile_file(file)
+
+    def compile_file(self, path):
+        print "Template, compile path: {}".format(path)
+        target_file = self.replace(path)
+        self.mkdir_target(target=target_file)
+        self.replace_tokens(filename=target_file, path=path)
+
+    def replace_tokens(self, filename=None, path=None):
+        with open(path, 'r') as src, open(filename, 'w+') as new:
             # print src
             out = self.replace(src.read())
             # out = src.read().format(**self.context)
             new.write(out)
 
-    def compile_file_paths(self, file_paths):
-        for f in file_paths:
-            if f is Utils.is_binary(f):
-                continue
-            self.compile(f)
 
 class Bootstrapper():
     """
@@ -150,6 +163,8 @@ class Bootstrapper():
     """
     def config(self, template_path=None, context_file=None, output=None):
         print "Bootstrapper: {}".format(template_path)
+        self.hook = HookRunner()
+
         self.output = TemplateOutput(output)
 
         self.context = Context(context_file)
@@ -165,25 +180,31 @@ class Bootstrapper():
         print "Creating bootstrap, for template '{}'".format(self.template.name)
         with self.make_tmp_dir() as tmp:
             out = os.path.join(tmp, 'output')
+
+            #@todo: move src to self.outupt
             src = os.path.join(tmp, '#__src__#')
             os.makedirs(src)
 
             print "Prepare CP: from {} to {}".format(self.template.path, src)
             #Copy original template files into destination.
-            self.output.copy_template_files_in_destination(template_path=self.template.path,
-                                                           target_path=src)
+            project_template = self.template.project_template()
+            self.output.move_to_target(target_path=src,
+                                       project_template=project_template)
 
             template_files = self.list_files(src)
             print "----"
             print "\n".join(template_files)
             print "----"
             # self.run_hooks(self.output.path, hook='pre')
-            self.template.compile_file_paths(template_files)
+            self.template.compile(template_files)
 
             self.clean_directory(src, out)
 
             self.output.move_content(src_path=out)
 
+            self.hook.run(path=self.template.path,
+                          cwd=self.output.path,
+                          hook='post')
             self.run_hooks(self.template.path, self.output.path, hook='post')
 
     def clean_directory(self, src, target):
@@ -195,6 +216,7 @@ class Bootstrapper():
 
 
     def run_hooks(self, src, target, hook='post'):
+        print "Running hooks: \n scr: {} \n tgt {} ".format(src, target)
         script = os.path.join(src, 'hooks', 'post')
         if not os.path.isfile(script):
             return
@@ -217,7 +239,7 @@ class Bootstrapper():
             for f in files:
                 output.append('{}/{}'.format(root, f))
         return output
-    
+
     @contextlib.contextmanager
     def make_tmp_dir(self):
         temp_dir = tempfile.mkdtemp()
