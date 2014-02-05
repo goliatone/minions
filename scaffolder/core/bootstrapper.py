@@ -38,6 +38,8 @@ class TemplateOutput():
             return
         self.path = Utils.normalize_path(path, mkdir=True)
 
+    def copy_template_files_in_destination(self,template_path=None, target_path=None):
+        call(["cp", "-R", template_path, target_path])
 
     def move_content(self, src_path=None):
         call(["cp", "-R", src_path+'/', self.path])
@@ -159,13 +161,17 @@ class Bootstrapper():
         self.context.set_var('__src__', 'output')
 
     def create(self):
+        print "==================="
         print "Creating bootstrap, for template '{}'".format(self.template.name)
         with self.make_tmp_dir() as tmp:
             out = os.path.join(tmp, 'output')
             src = os.path.join(tmp, '#__src__#')
             os.makedirs(src)
 
-            call(["cp", "-R", self.template.path, src])
+            print "Prepare CP: from {} to {}".format(self.template.path, src)
+            #Copy original template files into destination.
+            self.output.copy_template_files_in_destination(template_path=self.template.path,
+                                                           target_path=src)
 
             template_files = self.list_files(src)
             print "----"
