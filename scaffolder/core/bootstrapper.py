@@ -9,7 +9,6 @@ import os
 import re
 import glob
 import yaml
-from subprocess import call, Popen
 from scaffolder.core.utils import Utils, cp_recursive, commonprefix
 from scaffolder.core.config import Config
 from scaffolder.core.hook import HookRunner
@@ -44,6 +43,14 @@ class TemplateOutput():
 
     def move_content(self, src_path=None):
         cp_recursive(src_path+'/', self.path)
+
+    def create_output_paths(self, tmp_dir):
+        out = os.path.join(tmp_dir, 'output')
+
+        src = os.path.join(tmp_dir, '#__src__#')
+        os.makedirs(src)
+
+        return out, src
 
 
 class ProjectTemplate():
@@ -171,26 +178,17 @@ class Bootstrapper():
     def config(self, template_path=None, context_file=None, output=None):
         print "Bootstrapper: {}".format(template_path)
         self.hook = HookRunner()
-
         self.output = TemplateOutput(output)
-
         self.context = Context(context_file)
-
         context = self.context.parse()
-
         self.template = Template(context=context, path=template_path)
-
         self.context.set_var('__src__', 'output')
 
     def create(self):
         print "==================="
         print "Creating bootstrap, for template '{}'".format(self.template.name)
         with self.make_tmp_dir() as tmp:
-            out = os.path.join(tmp, 'output')
-
-            #@todo: move src to self.outupt
-            src = os.path.join(tmp, '#__src__#')
-            os.makedirs(src)
+            out, src = self.output.create_output_paths(tmp)
 
             print "Prepare CP: from {} to {}".format(self.template.path, src)
             #Copy original template files into destination.
@@ -208,13 +206,14 @@ class Bootstrapper():
             self.clean_directory(src, out)
 
             self.output.move_content(src_path=out)
-            print "Move content {}".format(out)
-            self.hook.run(path=self.template.path,
-                          cwd=self.output.path,
-                          hook='post')
+
             cwd = self.template.get_target_root()
             cwd = os.path.join(self.output.path, cwd)
-            self.run_hooks(self.template.path, cwd, hook='post')
+
+            self.hook.run(path=self.template.path,
+                          cwd=cwd,
+                          hook='post')
+
 
     def clean_directory(self, src, target):
         shutil.rmtree(src)
@@ -222,19 +221,6 @@ class Bootstrapper():
         print "Clean target temp directory: {}".format(target)
         #we should remove hooks
 
-
-
-    def run_hooks(self, src, target, hook='post'):
-        print "Running hooks: \n scr: {} \n tgt {} ".format(src, target)
-        script = os.path.join(src, 'hooks', 'post')
-        if not os.path.isfile(script):
-            return
-        try:
-            print "Executing in context {0}".format(target)
-            Popen(script, cwd=target)
-
-        except Exception, e:
-            print e
 
 
     def list_files(self, path):
