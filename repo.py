@@ -14,7 +14,18 @@ from textwrap import fill
 from clint.textui import puts, indent, colored
 from scaffolder.core.utils import clone_url, extract_directory
 
+"""
+TemplateManager class:
+Methods:
+- list
+- info <NAME>
+- update <NAME>
+- delete <NAME>
+- install <URL|PATH>
+- open <NAME>
+- hooks <NAME>
 
+"""
 class TemplatesManager():
     INIT_FILE = "__init__.*"
 
