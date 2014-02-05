@@ -29,6 +29,20 @@ F) Take -C "bower install && npm install" StopIteration(" error") cmd
 G) Add exclude files.
 """
 
+class TemplateOutput():
+    def __init__(self, path):
+        self.set_path(path)
+
+    def set_path(self, path=None):
+        if not path:
+            return
+        self.path = Utils.normalize_path(path, mkdir=True)
+
+
+    def move_content(self, src_path=None):
+        call(["cp", "-R", src_path+'/', self.path])
+
+
 class ProjectTemplate():
     def __init__(self, base_path='~/.cookiejar', default='default', metadata={}):
         self.name = default
@@ -84,13 +98,15 @@ class Context():
     def set_var(self, key, value):
         self.context[key] = value
 
-    def get_context(self):
+    def parse(self):
         return self.context
 
 
 class Template():
-    def __init__(self, context):
+    def __init__(self, context=None, path=None):
         self.context = context
+        self.path = Utils.normalize_path(path)
+        self.name = os.path.basename(self.path)
 
     def replace(self, template):
         def _replace(match):
@@ -112,6 +128,12 @@ class Template():
             # out = src.read().format(**self.context)
             new.write(out)
 
+    def compile_file_paths(self, file_paths):
+        for f in file_paths:
+            if f is Utils.is_binary(f):
+                continue
+            self.compile(f)
+
 class Bootstrapper():
     """
     @todo: We should get the path to the target's root dir.
@@ -124,39 +146,39 @@ class Bootstrapper():
     We need a ProjectTemplate class, to handle all that.
     We need a Hook class, to execute hooks.
     """
-    def config(self, template=None, context_file=None, output=None):
-        output = os.path.expanduser(output)
-        self.src = os.path.expanduser(template)
+    def config(self, template_path=None, context_file=None, output=None):
+        print "Bootstrapper: {}".format(template_path)
+        self.output = TemplateOutput(output)
 
         self.context = Context(context_file)
-        self.template = Template(self.context.get_context())
+
+        context = self.context.parse()
+
+        self.template = Template(context=context, path=template_path)
 
         self.context.set_var('__src__', 'output')
 
-        if not os.path.isdir(output):
-            os.makedirs(output)
-        self.out_dir = output
-
     def create(self):
-        print "Creating bootstrap"
+        print "Creating bootstrap, for template '{}'".format(self.template.name)
         with self.make_tmp_dir() as tmp:
-            src = os.path.join(tmp, '#__src__#')
             out = os.path.join(tmp, 'output')
+            src = os.path.join(tmp, '#__src__#')
             os.makedirs(src)
-            #TODO: Remove zip dependency.
-            call(["cp", "-R", self.src, src])
-            # with zipfile.ZipFile(self.src, 'r') as zfile:
-                # zfile.extractall(src)
-            tfiles = self.list_files(src)
-            # self.run_hooks(self.out_dir, hook='pre')
-            for f in tfiles:
-                if f is Utils.is_binary(f):
-                    continue
-                self.template.compile(f)
+
+            call(["cp", "-R", self.template.path, src])
+
+            template_files = self.list_files(src)
+            print "----"
+            print "\n".join(template_files)
+            print "----"
+            # self.run_hooks(self.output.path, hook='pre')
+            self.template.compile_file_paths(template_files)
 
             self.clean_directory(src, out)
-            self.move_content(out, self.out_dir)
-            self.run_hooks(self.src, self.out_dir, hook='post')
+
+            self.output.move_content(src_path=out)
+
+            self.run_hooks(self.template.path, self.output.path, hook='post')
 
     def clean_directory(self, src, target):
         shutil.rmtree(src)
@@ -164,10 +186,7 @@ class Bootstrapper():
         print "Clean target temp directory: {}".format(target)
         #we should remove hooks
 
-    def move_content(self, out=None, target=None):
-        if not target:
-            target = self.out_dir
-        call(["cp", "-R", out+'/', target])
+
 
     def run_hooks(self, src, target, hook='post'):
         script = os.path.join(src, 'hooks', 'post')
@@ -189,10 +208,8 @@ class Bootstrapper():
         """
         output = []
         for root, dirs, files in os.walk(path):
-            print('{0}/'.format(root))
             for f in files:
                 output.append('{}/{}'.format(root, f))
-                print('{}/{}'.format(root, f))
         return output
     
     @contextlib.contextmanager
