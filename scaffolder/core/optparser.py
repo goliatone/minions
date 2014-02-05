@@ -74,6 +74,9 @@ class CommandOptionParser(optparse.OptionParser):
     def format_help(self, formatter=None):
         # Get the original help message, to which we will append.
         out = optparse.OptionParser.format_help(self, formatter)
+
+        # out = 'THIS IS A HEADER, IT SHOULD GO HERE\n'+out
+
         if formatter is None:
             formatter = self.formatter
 
