@@ -7,10 +7,10 @@ import re
 from os import path
 import os
 from sys import platform
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 from scaffolder.vcs import VCS
 
-
+#TODO: Shoule we remove Utils and have static methods?
 class Utils():
     @classmethod
     def is_binary(cls, path):
@@ -82,3 +82,25 @@ def extract_directory(src_path, tgt_path=None):
         z.extractall(tgt_path)
 
     return src_path, tgt_path
+
+def cp_recursive(source, target):
+    call(["cp", "-R", source, target])
+
+def commonprefix(l):
+    # this unlike the os.path.commonprefix version
+    # always returns path prefixes as it compares
+    # path component wise
+    cp = []
+    ls = [p.split('/') for p in l]
+    ml = min( len(p) for p in ls )
+
+    for i in range(ml):
+
+        s = set( p[i] for p in ls )
+        if len(s) != 1:
+            break
+
+        cp.append(s.pop())
+
+    return '/'.join(cp)
+
