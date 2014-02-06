@@ -18,25 +18,16 @@ or project_template.json on same dir.
 class CreateCommand(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option(
-           '-c',
-           '--context-file',
-           dest="context_file",
-           help='Context file',
-           metavar="CONTEXT_FILE"
-        ),
-
-        make_option(
-           '-t',
-           '--template_path',
-           default='~/.cookiejar/default/',
-           help='Project Template file. Default to ~/.cookiejar/default',
-           metavar="TEMPLATE_PATH"
+           '-c', '--context-file', dest="context_file",
+           metavar="CONTEXT_FILE", help='Context file',
         ),
         make_option(
-            '-o',
-            '--output',
-            dest="output",
-            default='.',
+           '-t', '--template_path',
+           default='~/.cookiejar/', metavar="TEMPLATE_PATH",
+           help='Project Template file. Default to ~/.cookiejar'
+        ),
+        make_option(
+            '-o', '--output', dest="output", default='.',
             help='Output directory'
         ),
     )
@@ -51,7 +42,6 @@ class CreateCommand(BaseCommand):
             usage=self.get_usage(name),
             description='',
             epilog=''
-
         )
         BaseCommand.__init__(self, name, parser=parser, help=help, aliases=aliases)
 
@@ -59,23 +49,29 @@ class CreateCommand(BaseCommand):
         return '\n  %prog {0} TEMPLATE_NAME [OPTIONS]\n \
                         TEMPLATE_NAME must be the name of a registered\n \
                         template project.'.format(name)
-    def run(self, *args, **options):
-        out = options.get('output')
-        tpl = options.get('template_path')
-        ctx = options.get('context_file')
 
-        if not os.path.isdir(out):
-            self.exit_with_help("Path to output must be a valid path {}".format(out))
+    def validate_path(self, path):
+        if not os.path.isdir(path):
+            self.exit_with_help("Path to output must be a valid path {}".format(path))
+
+    def run(self, *args, **options):
+        output = options.get('output')
+        path = options.get('template_path')
+        context = options.get('context_file')
+
+        self.validate_path(output)
 
         try:
             tpl_name = args[0]
+            template = os.path.join(path, tpl_name)
+            self.validate_path(template)
         except:
             self.exit_with_help("Missing project template name.\n")
 
         boot = Bootstrapper()
-        boot.config(template_path=tpl,
-                    output=out,
-                    context_file=ctx
+        boot.config(template_path=template,
+                    output=output,
+                    context_file=context
         )
 
         boot.create()
