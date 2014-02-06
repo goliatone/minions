@@ -65,10 +65,10 @@ class CommandOptionParser(optparse.OptionParser):
       """
         return usage
 
-    def add_subcommand(self, cmd):
+    def add_subcommand(self, cmd, index=0):
         """Adds a CommandMeta object to the parser's list of commands.
         """
-        self.commands.append(cmd)
+        self.commands.insert(index, cmd)
 
     # Add the list of commands to the help message.
     def format_help(self, formatter=None):
