@@ -41,8 +41,16 @@ class TemplateOutput():
     def move_to_target(self,project_template=None, target_path=None):
         cp_recursive(project_template, target_path)
 
-    def move_content(self, src_path=None):
+    def move_content(self, src_path=None, files=[]):
+        for source, target in files.items():
+           if os.path.exists(source):
+               try:
+                   os.rename(source, target)
+               except:
+                   continue
+
         cp_recursive(src_path+'/', self.path)
+
 
     def create_output_paths(self, tmp_dir):
         out = os.path.join(tmp_dir, 'output')
@@ -116,6 +124,7 @@ class Template():
         self.name = os.path.basename(self.path)
         self.project_dir = project_dir
         self.compiled = []
+        self.binaries = {}
 
     def project_template(self):
         return os.path.join(self.path, self.project_dir)
@@ -135,8 +144,9 @@ class Template():
     def compile(self, file_paths):
         for file in file_paths:
             if Utils.is_binary(file):
-                continue
-            self.compile_file(file)
+                self.track_binary(file)
+            else:
+                self.compile_file(file)
 
     def compile_file(self, path):
         target_file = self.add_compiled_path(path)
@@ -144,15 +154,21 @@ class Template():
         self.replace_tokens(filename=target_file, path=path)
 
     def replace_tokens(self, filename=None, path=None):
-        with open(path, 'r') as src, open(filename, 'w+') as new:
-            out = self.replace(src.read())
+        #TODO: Right now we are moving this already to the endpoint
+        #we might want to keep it on tmp? and then move?
+        with open(path, 'r') as template, open(filename, 'w+') as new:
+            content = self.replace(template.read())
             # out = src.read().format(**self.context)
-            new.write(out)
+            new.write(content)
 
     def add_compiled_path(self, path):
         file = self.replace(path)
         self.compiled.append(file)
         return file
+
+    def track_binary(self, file):
+        path = self.add_compiled_path(file)
+        self.binaries[file] = path
 
     def get_target_root(self):
         return os.path.basename(commonprefix(self.compiled).strip('/'))
@@ -192,12 +208,16 @@ class Bootstrapper():
                                        project_template=project_template)
 
             template_files = self.list_files(src)
+            print "=" * 8
+            print "\n".join(template_files)
+            print "=" * 8
             # self.run_hooks(self.output.path, hook='pre')
             self.template.compile(template_files)
 
-            self.clean_directory(src, out)
+            self.output.move_content(files=self.template.binaries,
+                                     src_path=out)
 
-            self.output.move_content(src_path=out)
+            self.clean_directory(src, out)
 
             cwd = self.get_target_cwd()
 
