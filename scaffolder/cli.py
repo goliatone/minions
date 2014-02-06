@@ -5,8 +5,9 @@ from scaffolder.core.commands import  CommandController
 
 
 COMMANDS = [
+    'create',
     'template',
-    'vcs'
+    'vcs',
 ]
 
 
