@@ -31,7 +31,7 @@ class VcsCommand(BaseCommand):
         description = 'hola'
         help = 'something goes here'
 
-    def __init__(self, name, parser=None, help='', aliases=(), stdout=None, stderr=None):
+    def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
         help = 'Command to clone github repos'
         aliases = ('git','hg',)
         #TODO: Move to BaseCommand, create methods and have each subcommand override
