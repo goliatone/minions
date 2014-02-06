@@ -51,7 +51,7 @@ class CreateCommand(BaseCommand):
                         template project.'.format(name)
 
     def validate_path(self, path):
-        if not os.path.isdir(path):
+        if not os.path.exists(path):
             self.exit_with_help("Path to output must be a valid path {}".format(path))
 
     def run(self, *args, **options):
@@ -64,7 +64,7 @@ class CreateCommand(BaseCommand):
         try:
             tpl_name = args[0]
             template = os.path.join(path, tpl_name)
-            self.validate_path(template)
+            #TODO: Validate that we have a real template
         except:
             self.exit_with_help("Missing project template name.\n")
 
