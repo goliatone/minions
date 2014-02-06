@@ -7,7 +7,7 @@ from scaffolder.core.utils import import_class
 from scaffolder.core.optparser import CommandMeta
 from scaffolder.core.optparser import CommandOptionParser
 from scaffolder import get_version
-
+from clint.textui.colored import red
 
 
 
@@ -146,8 +146,7 @@ class BaseCommand(CommandMeta):
             self.run(*args, **options)
         except Exception, e:
             if options['debug']:
-                # sys.stderr.write(colorize('ERROR: ', fg='red'))
-                self.stderr.write('%s\n' % e)
+                self.stderr.write(red('%s\n' % e))
                 sys.exit(1)
             else:
                 raise
@@ -161,3 +160,9 @@ class BaseCommand(CommandMeta):
 
     def run(self, *args, **options):
         raise NotImplementedError()
+
+    def exit_with_help(self, message=None, color=red):
+        if message:
+            print color(message)
+        self.parser.print_help()
+        self.parser.exit()
