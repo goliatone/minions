@@ -96,14 +96,11 @@ class Context():
         config = Config()
         self.config = config
         self.context = config.merge(self.context)
-        print "Context: {0}".format(self.context)
 
     def load(self):
         with open(self.context_file, 'r') as content_file:
             config = content_file.read()
             self.context = json.loads(config)
-            print type(self.context)
-        print("Loaded:\n {0}".format(config))
 
     def set_var(self, key, value):
         self.context[key] = value
@@ -133,7 +130,6 @@ class Template():
         path = os.path.dirname(target)
         if not os.path.isdir(path):
             os.makedirs(path)
-        print "Dest: {}".format(path)
         return path
 
     def compile(self, file_paths):
@@ -149,7 +145,6 @@ class Template():
 
     def replace_tokens(self, filename=None, path=None):
         with open(path, 'r') as src, open(filename, 'w+') as new:
-            # print src
             out = self.replace(src.read())
             # out = src.read().format(**self.context)
             new.write(out)
@@ -161,6 +156,10 @@ class Template():
 
     def get_target_root(self):
         return os.path.basename(commonprefix(self.compiled).strip('/'))
+
+    def join_root_to_path(self, path):
+        root = self.get_target_root()
+        return os.path.join(path, root)
 
 
 class Bootstrapper():
@@ -176,7 +175,6 @@ class Bootstrapper():
     We need a Hook class, to execute hooks.
     """
     def config(self, template_path=None, context_file=None, output=None):
-        print "Bootstrapper: {}".format(template_path)
         self.hook = HookRunner()
         self.output = TemplateOutput(output)
         self.context = Context(context_file)
@@ -185,21 +183,15 @@ class Bootstrapper():
         self.context.set_var('__src__', 'output')
 
     def create(self):
-        print "==================="
-        print "Creating bootstrap, for template '{}'".format(self.template.name)
         with self.make_tmp_dir() as tmp:
             out, src = self.output.create_output_paths(tmp)
 
-            print "Prepare CP: from {} to {}".format(self.template.path, src)
             #Copy original template files into destination.
             project_template = self.template.project_template()
             self.output.move_to_target(target_path=src,
                                        project_template=project_template)
 
             template_files = self.list_files(src)
-            print "----"
-            print "\n".join(template_files)
-            print "----"
             # self.run_hooks(self.output.path, hook='pre')
             self.template.compile(template_files)
 
@@ -207,21 +199,18 @@ class Bootstrapper():
 
             self.output.move_content(src_path=out)
 
-            cwd = self.template.get_target_root()
-            cwd = os.path.join(self.output.path, cwd)
+            cwd = self.get_target_cwd()
 
             self.hook.run(path=self.template.path,
                           cwd=cwd,
                           hook='post')
 
-
     def clean_directory(self, src, target):
         shutil.rmtree(src)
-        #we should remove __init__ from target
-        print "Clean target temp directory: {}".format(target)
-        #we should remove hooks
 
-
+    def get_target_cwd(self):
+        cwd = self.template.get_target_root()
+        return os.path.join(self.output.path, cwd)
 
     def list_files(self, path):
         """
