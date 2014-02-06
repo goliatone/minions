@@ -1,5 +1,4 @@
-/Users/emilianoburgos/Development/PYTHON/minions
-### /Users/emilianoburgos/.gitignore-boilerplates/Python.gitignore
+### Python
 
 *.py[cod]
 
@@ -39,15 +38,14 @@ nosetests.xml
 .pydevproject
 
 
-### /Users/emilianoburgos/.gitignore-boilerplates/Global/SublimeText.gitignore
+### IDEs
 
 # SublimeText project files
 *.sublime-workspace
 *.sublime-project
 .idea
 
-/Users/emilianoburgos/Development/PYTHON/minions
-### /Users/emilianoburgos/.gitignore-boilerplates/Global/OSX.gitignore
+### OSX
 
 .DS_Store
 .AppleDouble
@@ -62,8 +60,7 @@ Icon
 .Spotlight-V100
 .Trashes
 
-
-### /Users/emilianoburgos/.gitignore-boilerplates/Global/Archives.gitignore
+### Archives
 
 # It's better to unpack these files and commit the raw source because
 # git has its own built in compression methods.
@@ -89,51 +86,6 @@ Icon
 *.deb
 *.rpm
 
-
-/Users/emilianoburgos/Development/PYTHON/minions
-### /Users/emilianoburgos/.gitignore-boilerplates/python.gitignore
-
-*.py[cod]
-
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-__pycache__
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-
-### /Users/emilianoburgos/.gitignore-boilerplates/Global/SublimeText.gitignore
-
-# SublimeText project files
-*.sublime-workspace
-
+## Cruft
+example/*
 
