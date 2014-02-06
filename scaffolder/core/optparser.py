@@ -134,6 +134,10 @@ class CommandOptionParser(optparse.OptionParser):
                 return subcommand
         return None
 
+    def exit_with_help(self):
+        self.print_help()
+        self.exit()
+
     def parse_args(self, a=None, v=None):
         """Like OptionParser.parse_args, but returns these four items:
         - options: the options passed to the root parser
@@ -145,13 +149,12 @@ class CommandOptionParser(optparse.OptionParser):
 
         if not args:
             # No command given.
-            self.print_help()
-            self.exit()
+            self.exit_with_help()
         else:
-            cmdname = args.pop(0)
-            subcommand = self._subcommand_for_name(cmdname)
+            cmd = args.pop(0)
+            subcommand = self._subcommand_for_name(cmd)
             if not subcommand:
-                self.error('unknown command ' + cmdname)
+                self.error('unknown command ' + cmd)
 
         suboptions, subargs = subcommand.parser.parse_args(args)
 
@@ -159,114 +162,12 @@ class CommandOptionParser(optparse.OptionParser):
         if subcommand is self._HelpCommandMeta:
             if subargs:
                 # particular
-                cmdname = subargs[0]
-                helpcommand = self._subcommand_for_name(cmdname)
-                helpcommand.parser.print_help()
+                cmd = subargs[0]
+                help_cmd = self._subcommand_for_name(cmd)
+                help_cmd.parser.print_help()
                 self.exit()
             else:
                 # general
-                self.print_help()
-                self.exit()
+               self.exit_with_help()
 
         return options, subcommand, suboptions, subargs
-
-# Smoke test.
-if __name__ == '__main__':
-    #Create "add" command meta
-    add_cmd = CommandMeta('add',
-                          optparse.OptionParser(usage='%prog <== ADD [OPTIONS] FILE...'),
-                          'add the specified files on the next commit'
-    )
-
-    #add options to "add" command
-    add_cmd.parser.add_option('-n',
-                              '--dry-run',
-                              dest='dryrun',
-                              help='do not perform actions, just print output',
-                              action='store_true'
-    )
-
-    #Create "commit" command meta
-    commit_cmd = CommandMeta('commit',
-                             optparse.OptionParser(usage='%prog <== COMMIT [OPTIONS] [FILE...]'),
-                             'commit the specified files or all outstanding changes',
-                            ('ci',)
-    )
-    commit_cmd.parser.add_option('-i',
-                                 '--interactive',
-                                 dest='interactive',
-                                 help='This is just a kaka option',
-                                 )
-
-    def trigger(*args, **kwargs):
-        print 'trigger called {0} and {1}'.format(args, kwargs)
-
-    commit_cmd.parser.add_option('-k',
-                                 '--kaka',
-                                 dest='kaka',
-                                 help='This is just a kaka option',
-                                 action="callback",
-                                 callback=trigger,
-                                 )
-    def execute(self, *args, **kwargs):
-        print 'execute called {0} and {1}'.format(args, kwargs)
-
-    commit_cmd.execute = execute
-
-    #Create "xxx" command meta
-    long_cmd = CommandMeta('very_very_long_command_name',
-                           optparse.OptionParser(),
-                           'description should start on next line')
-
-    #Create "somcmd" command meta:
-    long_help_cmd = CommandMeta('somecmd',
-                                optparse.OptionParser(),
-                                'very long help text should wrap to the next line at which point '
-                                'the indentation should match the previous line',
-                                ('history',)
-    )
-
-    # Set up the global parser and its options.
-    cmd_parser = CommandOptionParser(
-        commands= (add_cmd, commit_cmd, long_cmd, long_help_cmd)
-    )
-    cmd_parser.add_option('-R', '--repository',
-                      dest='repository',
-                      help='repository root directory or symbolic path name',
-                      metavar='PATH')
-    cmd_parser.add_option('-v',
-                      dest='verbose',
-                      help='enable additional output',
-                      action='store_true')
-
-    # Parse the global options and the subcommand options.
-    options, subcommand, suboptions, subargs = cmd_parser.parse_args()
-
-    subcommand.execute(subargs, suboptions)
-
-    # Here, we dispatch based on the identity of subcommand. Of course,
-    # one could instead add a "func" property to all the commands
-    # and here just call subcommand.func(suboptions, subargs) or
-    # something.
-    if subcommand is add_cmd:
-        if subargs:
-            print 'Adding files:', ', '.join(subargs)
-            print 'Dry run:', ('yes' if suboptions.dryrun else 'no')
-        else:
-            # Note that calling error() on the subparser is the right
-            # thing to do here. This way, the usage message reflects
-            # the subcommand's usage specifically rather than just the
-            # root command.
-            subcommand.parser.error('need at least one file to add')
-    elif subcommand is commit_cmd:
-        if subargs:
-            print 'Committing files:', ', '.join(subargs)
-        else:
-            print 'Committing all changes.'
-    else:
-        print '(dummy command)'
-
-    # Show the global options.
-    print 'Repository:', (options.repository if options.repository
-                          else '(default)')
-    print 'Verbose:', ('yes' if options.verbose else 'no')
