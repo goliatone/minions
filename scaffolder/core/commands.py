@@ -33,9 +33,15 @@ class CommandController():
 
 
     def register_command_names(self, command_names):
-        #TODO: Add support for aliases(?)
+        """
+        Note that we insert instead of append to list
+        the commands in help as they were introduced.
+        TODO: Add support for aliases(?)
+        @param command_names: list of command names
+        @return: void
+        """
         for id in command_names:
-            self.command_ids.append(id)
+            self.command_ids.insert(0, id)
 
     def execute(self, argv=None):
         argv = sys.argv if not argv else argv
@@ -57,7 +63,6 @@ class CommandController():
         command.run_from_argv(argv)
 
     def parse_argv(self, argv):
-        # self.argv = argv
         # This should always be here
         self.prog = argv[0]
         #Expect subcommand else would have show_help
@@ -94,6 +99,7 @@ class CommandController():
 
     def show_help(self, load_commands=True):
         #let's load all registered commands and register them
+
         for cmd in self.command_ids:
             Command = self.get_command_class(cmd)
             command = Command(cmd)
