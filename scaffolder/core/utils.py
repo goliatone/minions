@@ -104,3 +104,6 @@ def commonprefix(l):
 
     return '/'.join(cp)
 
+def assert_path(path, exception, message):
+    if not os.path.isdir(path):
+        raise exception(message)
