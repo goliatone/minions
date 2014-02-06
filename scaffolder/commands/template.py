@@ -18,7 +18,7 @@ class TemplateCommand(BaseCommand):
         ),
     )
 
-    def __init__(self, name, parser=None, help='', aliases=(), stdout=None, stderr=None):
+    def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
         help = 'Template command help entry'
         parser = OptionParser(
             version=self.get_version(),
