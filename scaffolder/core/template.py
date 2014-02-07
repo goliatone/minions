@@ -12,7 +12,7 @@ Can we read this?! That is a good question!
 """
 from textwrap import fill
 from clint.textui import puts, indent, colored
-from scaffolder.core.utils import clone_url, extract_directory, lower_keys
+from scaffolder.core.utils import clone_url, extract_directory, lower_keys, cp_recursive
 from scaffolder.core.utils import Utils
 """
 TemplateManager class:
@@ -82,10 +82,10 @@ class TemplateManager():
         src = Utils.normalize_path(src)
         dest = Utils.normalize_path(dest)
 
-        src, dest = clone_url(src_path=src, tgt_path=dest)
-        src, dest = extract_directory(src_path=src, tgt_path=dest)
-
-        call(["cp", "-R", src, dest])
+        src, dest = clone_url(src=src, tgt=dest)
+        src, dest = extract_directory(src=src, tgt=dest)
+        if not ".zip" in src:
+            cp_recursive(src, dest)
 
 
 def main():
