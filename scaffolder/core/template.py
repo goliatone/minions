@@ -13,7 +13,7 @@ Can we read this?! That is a good question!
 from textwrap import fill
 from clint.textui import puts, indent, colored
 from scaffolder.core.utils import clone_url, extract_directory
-
+from scaffolder.core.utils import Utils
 """
 TemplateManager class:
 Methods:
@@ -26,7 +26,7 @@ Methods:
 - hooks <NAME>
 
 """
-class TemplatesManager():
+class TemplateManager():
     INIT_FILE = "__init__.*"
 
     def __init__(self):
@@ -56,9 +56,9 @@ class TemplatesManager():
 
 
     def load_metadata(self, path):
-        init_file = os.path.join(path, TemplatesManager.INIT_FILE)
+        init_file = os.path.join(path, TemplateManager.INIT_FILE)
         template = os.path.basename(path)
-        content = init_file
+        print "Check dir: {}".format(template)
         file = glob.glob(init_file)
         if file:
             content = open(file[0], 'r').readlines()
@@ -67,7 +67,7 @@ class TemplatesManager():
                 return
             content = "".join(content[b[0]+1:b[1]])
             self.metadata[template] = yaml.load(content)
-
+    
     def list_dirs(self, path):
         output = []
         for item in os.listdir(path):
@@ -82,9 +82,12 @@ class TemplatesManager():
         #most of the time, dest should be default.
         #check to see if src is zip, or if src is vcs.
 
-        #TODO: Review this!!!
+        src = Utils.normalize_path(src)
+        dest = Utils.normalize_path(dest)
+
         src, dest = clone_url(src_path=src, tgt_path=dest)
         src, dest = extract_directory(src_path=src, tgt_path=dest)
+        print "SRC: {}\nTGT: {}".format(src, dest)
 
         call(["cp", "-R", src, dest])
 
@@ -96,16 +99,13 @@ def main():
     parser.add_argument('-B', '--bar', help='bar')
     args = parser.parse_args()
 
-    repo = TemplatesManager()
+    repo = TemplateManager()
     repo.list()
     # repo.install()
 
 
 if __name__ == '__main__':
     try:
-        from scaffolder.main import CommandController
-        # manager = CommandController(sys.argv)
-        # manager.execute()
         main()
         sys.exit(0)
     except KeyboardInterrupt, e:
