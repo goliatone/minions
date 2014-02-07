@@ -6,10 +6,8 @@ import argparse
 import traceback
 import glob
 import yaml
-from subprocess import call
-"""
-Can we read this?! That is a good question!
-"""
+import tempfile
+from scaffolder.vcs import VCS
 from textwrap import fill
 from clint.textui import puts, indent, colored
 from scaffolder.core.utils import clone_url, extract_directory, lower_keys, cp_recursive
@@ -79,14 +77,14 @@ class TemplateManager():
         #most of the time, dest should be default.
         #check to see if src is zip, or if src is vcs.
 
-        src = Utils.normalize_path(src)
+        if not ".git" in src:
+            src = Utils.normalize_path(src)
         dest = Utils.normalize_path(dest)
 
         src, dest = clone_url(src=src, tgt=dest)
         src, dest = extract_directory(src=src, tgt=dest)
-        if not ".zip" in src:
+        if not ".zip" and not ".git" in src:
             cp_recursive(src, dest)
-
 
 def main():
     parser = argparse.ArgumentParser(description='Booyakasha!')
