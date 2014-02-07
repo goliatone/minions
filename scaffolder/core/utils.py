@@ -5,6 +5,7 @@ import tempfile
 import zipfile
 import re
 from os import path
+import shutil
 import os
 from sys import platform
 from subprocess import Popen, PIPE, call
@@ -38,7 +39,12 @@ class Utils():
             os.makedirs(file_path)
         return file_path
 
-
+def lower_keys(x):
+    if isinstance(x, list):
+        return [lower_keys(v) for v in x]
+    if isinstance(x, dict):
+        return dict((k.lower(), lower_keys(v)) for k, v in x.iteritems())
+    return x
 
 def import_class(class_path):
     """
@@ -59,29 +65,44 @@ def import_class(class_path):
 
     return Class
 
-def clone_url(src_path, tgt_path=None):
-    if not ".git" in src_path:
-        return src_path, tgt_path
+def clone_url(src, tgt=None):
+    if not ".git" in src:
+        return src, tgt
 
-    if not tgt_path:
-        tgt_path = tempfile.mkdtemp()
+    if not tgt:
+        tgt = tempfile.mkdtemp()
 
-    vcs = VCS()
-    vcs.clone(url=src_path, target_dir=tgt_path)
+    vcs = VCS(src)
+    vcs.clone(target_dir=tgt)
 
-    return src_path, tgt_path
+    return src, tgt
 
-def extract_directory(src_path, tgt_path=None):
-    if not ".zip" in src_path:
-        return src_path, tgt_path
+def extract_directory(src, tgt=None, remove=False):
+    if not ".zip" in src:
+        return src, tgt
 
-    if not tgt_path:
-        tgt_path = tempfile.mkdtemp()
+    if not tgt:
+        tgt = tempfile.mkdtemp()
 
-    with zipfile.ZipFile(src_path, "r") as z:
-        z.extractall(tgt_path)
+    with zipfile.ZipFile(src, "r") as z:
+        z.extractall(tgt)
 
-    return src_path, tgt_path
+    junk = os.path.join(tgt, '__MACOSX/')
+    if os.path.isdir(junk):
+        shutil.rmtree(junk)
+
+    if remove:
+        try:
+            file = os.path.join(tgt, os.path.basename(src))
+            print "SRC {}".format(src)
+            print "TGT {}".format(tgt)
+            print "REMOVING FILE {}".format(file)
+            os.remove(file)
+        except OSError, e:
+            print e
+            pass
+
+    return src, tgt
 
 def cp_recursive(source, target):
     call(["cp", "-R", source, target])
@@ -107,3 +128,23 @@ def commonprefix(l):
 def assert_path(path, exception, message):
     if not os.path.isdir(path):
         raise exception(message)
+
+from threading import Timer
+
+
+def debounce(wait):
+    """ Decorator that will postpone a functions
+        execution until after wait seconds
+        have elapsed since the last time it was invoked. """
+    def decorator(fn):
+        def debounced(*args, **kwargs):
+            def call_it():
+                fn(*args, **kwargs)
+            try:
+                debounced.t.cancel()
+            except(AttributeError):
+                pass
+            debounced.t = Timer(wait, call_it)
+            debounced.t.start()
+        return debounced
+    return decorator
