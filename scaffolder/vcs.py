@@ -7,8 +7,12 @@ import os
 import sys
 import shutil
 
-def ensure_path(path):
-    pass
+
+def normalize_path(file_path, mkdir=False):
+    file_path = os.path.realpath(os.path.expanduser(file_path))
+    if mkdir and not os.path.isdir(file_path):
+        os.makedirs(file_path)
+    return file_path
 
 
 class VCS():
@@ -48,6 +52,7 @@ class VCS():
         if self.prompt_question(question):
             print "Removing '{0}'...".format(repo_path)
             shutil.rmtree(repo_path)
+            os.mkdir(repo_path)
         else:
             print "You don't want to overwrite. Bye!"
             sys.exit(0)
@@ -79,8 +84,7 @@ class VCS():
         url = self.url
 
         #let's check target dir:
-        target_dir = os.path.expanduser(target_dir)
-        ensure_path(target_dir)
+        target_dir = normalize_path(target_dir, mkdir=True)
 
         #did we get a git or hg repo?
         vcs = self.get_handler(url)
@@ -91,6 +95,9 @@ class VCS():
 
         if os.path.isdir(repo_path):
             self.notify_existing_repo(repo_path)
+        else:
+            os.mkdir(repo_path)
+
         try:
             subprocess.check_call([vcs, 'clone', url], cwd=target_dir)
         except Exception, e:
