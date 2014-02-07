@@ -27,9 +27,6 @@ class VcsCommand(BaseCommand):
             metavar="TARGET"
         ),
     )
-    class Meta():
-        description = 'hola'
-        help = 'something goes here'
 
     def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
         help = 'Command to clone github repos'
