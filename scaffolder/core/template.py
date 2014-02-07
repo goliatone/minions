@@ -81,6 +81,8 @@ class TemplateManager():
             src = Utils.normalize_path(src)
         dest = Utils.normalize_path(dest)
 
+        #TODO: we should clone and extract to tmp directory
+        # and then cp.
         src, dest = clone_url(src=src, tgt=dest)
         src, dest = extract_directory(src=src, tgt=dest)
         if not ".zip" and not ".git" in src:
