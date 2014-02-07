@@ -91,8 +91,11 @@ class VCS():
 
         if os.path.isdir(repo_path):
             self.notify_existing_repo(repo_path)
-
-        subprocess.check_call([vcs, 'clone', url], cwd=target_dir)
+        try:
+            subprocess.check_call([vcs, 'clone', url], cwd=target_dir)
+        except Exception, e:
+            print e
+            exit()
 
         if checkout_branch:
             subprocess.check_call([vcs, 'checkout', checkout_branch], cwd=target_dir)
