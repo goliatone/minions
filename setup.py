@@ -8,6 +8,22 @@ try:
 except ImportError:
     from distutils.core import setup
 
+#Include scaffolder
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__), 'scaffolder')
+    )
+)
+
+import scaffolder
+
+print scaffolder.install_minion_config('weaver')
+exit()
+
+home = os.path.expanduser("~")
+conf = os.path.join(home, ".minions", "weaver")
+
 
 # if sys.argv[-1] == 'publish':
 if 'publish' in sys.argv:
@@ -26,7 +42,7 @@ dev_requires = []
 
 setup(
     name='scaffolder',
-    version='0.0.1',
+    version=scaffolder.get_version(),
     description='Simple terminal utility to scaffold projects from templates.',
     # long_description=readme + '\n\n' + history,
     long_description=readme + '\n\n',
