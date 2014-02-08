@@ -168,6 +168,6 @@ class CommandOptionParser(optparse.OptionParser):
                 self.exit()
             else:
                 # general
-               self.exit_with_help()
+                self.exit_with_help()
 
         return options, subcommand, suboptions, subargs
