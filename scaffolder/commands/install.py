@@ -3,6 +3,7 @@
 
 from optparse import make_option
 from optparse import OptionParser
+from scaffolder import get_minion_path
 from scaffolder.core.template import TemplateManager
 from scaffolder.core.commands import BaseCommand
 
@@ -12,7 +13,7 @@ class InstallCommand(BaseCommand):
             "-t",
             "--target",
             dest="target_dir",
-            default='~/.cookiejar',
+            default=get_minion_path('weaver'),
             help='Project Templates directory.',
             metavar="TEMPLATES_DIR"
         ),
