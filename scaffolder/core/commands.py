@@ -28,7 +28,7 @@ class CommandController():
         self.argv = ()
 
         #Make CliApplication, instantiate a new CommandController and set
-        self.description = "The program %prog has the following commands"
+        self.description = "The program %prog has the following options and commands"
         self.parser = CommandOptionParser(description=self.description)
 
 
