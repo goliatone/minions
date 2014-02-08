@@ -13,7 +13,7 @@ from clint.textui.colored import red
 
 class CommandController():
 
-    DEFAULT_ARGUMENT = ['__DEFAULT__']
+    DEFAULT_ARGUMENT = '__DEFAULT__'
 
     def __init__(self, stdout=None, stderr=None):
 
@@ -130,9 +130,6 @@ class BaseCommand(CommandMeta):
 
         CommandMeta.__init__(self, name, parser=parser, help=help, aliases=aliases)
 
-    def get_version(self):
-        return get_version()
-
     def execute(self, *args, **options):
         try:
             self.run(*args, **options)
@@ -155,6 +152,9 @@ class BaseCommand(CommandMeta):
 
     def get_default_option(self):
         return ['--help']
+
+    def get_version(self):
+        return get_version()
 
     def exit_with_help(self, message=None, color=red):
         if message:
