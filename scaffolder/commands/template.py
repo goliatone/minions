@@ -3,8 +3,8 @@
 
 from optparse import make_option
 from optparse import OptionParser
-
 from scaffolder.core.commands import BaseCommand
+from scaffolder.core.template import TemplateManager
 
 class TemplateCommand(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -31,6 +31,7 @@ class TemplateCommand(BaseCommand):
     def run(self, *args, **options):
         url = options.get('url')
         debug = options.get('debug')
-
+        manger = TemplateManager()
+        manger.list()
         print "Execute template {0}, {1}".format(url, debug)
 
