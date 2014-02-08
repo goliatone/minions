@@ -60,8 +60,8 @@ class CommandOptionParser(optparse.OptionParser):
 
     def make_usage(self):
         usage = """
-  %prog MINION [ARGS...]
-  %prog help MINION
+  %prog COMMAND [ARGS...]
+  %prog help COMMAND
       """
         return usage
 
