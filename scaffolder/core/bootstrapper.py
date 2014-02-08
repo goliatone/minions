@@ -9,6 +9,7 @@ import os
 import re
 import glob
 import yaml
+from scaffolder import get_minion_path
 from scaffolder.core.utils import Utils, cp_recursive, commonprefix
 from scaffolder.core.config import Config
 from scaffolder.core.hook import HookRunner
@@ -20,7 +21,7 @@ TODO: Integrate into MinionTasks
 A) Given a src template dir and a context file,
    interpolate and put in out dir.
 B) Have global context, i.e username email github
-C) Have templates dir @ ~/.cookiejars
+C) Have templates dir @ ~/.minions/weaver
 D) Add new templates:
    - We clone from github // bitbucket?
    - We move from local dir.
@@ -62,7 +63,7 @@ class TemplateOutput():
 
 
 class ProjectTemplate():
-    def __init__(self, base_path='~/.cookiejar', default='default', metadata={}):
+    def __init__(self, base_path=get_minion_path('weaver'), default='default', metadata={}):
         self.name = default
         self.meta = metadata
         self.base_path = base_path

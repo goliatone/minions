@@ -4,6 +4,7 @@
 from optparse import make_option
 from optparse import OptionParser
 import os
+from scaffolder import get_minion_path
 from scaffolder.core.commands import BaseCommand
 from scaffolder.core.bootstrapper import Bootstrapper
 
@@ -23,8 +24,8 @@ class CreateCommand(BaseCommand):
         ),
         make_option(
            '-t', '--template_path',
-           default='~/.cookiejar/', metavar="TEMPLATE_PATH",
-           help='Project Template file. Default to ~/.cookiejar'
+           default=get_minion_path('weaver'), metavar="TEMPLATE_PATH",
+           help='Project Template file. Default to %s' % get_minion_path('weaver')
         ),
         make_option(
             '-o', '--output', dest="output", default='.',
