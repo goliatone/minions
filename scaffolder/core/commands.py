@@ -13,7 +13,7 @@ from clint.textui.colored import red
 
 class CommandController():
 
-    DEFAULT_ARGUMENT = ['--help']
+    DEFAULT_ARGUMENT = ['__DEFAULT__']
 
     def __init__(self, stdout=None, stderr=None):
 
@@ -45,7 +45,6 @@ class CommandController():
 
     def execute(self, argv=None):
         argv = sys.argv if not argv else argv
-
         #TODO: We might want to use default command!!
         if len(argv) == 1:
             return self.show_help()
@@ -124,19 +123,12 @@ class BaseCommand(CommandMeta):
             )
         )
 
-    class Meta():
-        help = 'something goes here'
-        description = 'hola'
-
     def __init__(self, name, parser=None, help='', aliases=(), stdout=None, stderr=None):
 
         self.stdout = stdout or sys.stdout
         self.stderr = stderr or sys.stderr
 
         CommandMeta.__init__(self, name, parser=parser, help=help, aliases=aliases)
-
-    def get_meta(self):
-        return
 
     def get_version(self):
         return get_version()
@@ -152,17 +144,25 @@ class BaseCommand(CommandMeta):
                 raise
 
     def run_from_argv(self, argv):
-        # parser = self.get_parser(sys.argv[0], sys.argv[1])
-        parser = self.parser
-        options, args = parser.parse_args(argv)
+        argv = self.check_values(argv)
+
+        options, args = self.parser.parse_args(argv)
+
         self.execute(*args, **options.__dict__)
-        # self.execute(argv)
 
     def run(self, *args, **options):
         raise NotImplementedError()
+
+    def get_default_option(self):
+        return ['--help']
 
     def exit_with_help(self, message=None, color=red):
         if message:
             print color(message)
         self.parser.print_help()
         self.parser.exit()
+
+    def check_values(self, argv):
+        if CommandController.DEFAULT_ARGUMENT in argv:
+            argv = self.get_default_option()
+        return argv
