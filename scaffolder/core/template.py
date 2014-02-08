@@ -42,7 +42,7 @@ class TemplateManager():
     def dump_metadata(self):
         print "Templates:\n"
         for name in self.metadata:
-            self.print_metadtata(name)
+            self.print_metadata(name)
 
     def print_metadata(self, name):
         try:
