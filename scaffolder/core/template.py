@@ -11,6 +11,7 @@ from scaffolder.vcs import VCS
 from textwrap import fill
 from clint.textui import puts, indent, colored
 from scaffolder.core.utils import clone_url, extract_directory, lower_keys, cp_recursive
+
 from scaffolder.core.utils import Utils
 """
 TemplateManager class:
@@ -36,11 +37,15 @@ class TemplateManager():
         for dir in dirs:
             if os.path.isdir(dir):
                 self.load_metadata(dir)
-        self.print_metadata()
+        self.dump_metadata()
 
-    def print_metadata(self):
+    def dump_metadata(self):
         print "Templates:\n"
         for name in self.metadata:
+            self.print_metadtata(name)
+
+    def print_metadata(self, name):
+        try:
             info = self.metadata[name]
             info.setdefault('description', 'This template has no description')
             # " %-45s %-15s %15s" % (template, status, file_type)
@@ -49,6 +54,10 @@ class TemplateManager():
             desc = fill(desc, width=70, initial_indent="  ", subsequent_indent="  ")
             puts(colored.green(
                 title+desc
+            ))
+        except:
+            puts(colored.red(
+                "No metadata available for {}".format(name)
             ))
 
 
