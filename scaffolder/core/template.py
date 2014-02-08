@@ -11,7 +11,7 @@ from scaffolder.vcs import VCS
 from textwrap import fill
 from clint.textui import puts, indent, colored
 from scaffolder.core.utils import clone_url, extract_directory, lower_keys, cp_recursive
-
+from scaffolder import get_minion_path
 from scaffolder.core.utils import Utils
 """
 TemplateManager class:
@@ -31,7 +31,7 @@ class TemplateManager():
     def __init__(self):
         self.metadata = {}
 
-    def list(self, path='~/.cookiejar'):
+    def list(self, path=get_minion_path('weaver')):
         path = os.path.expanduser(path)
         dirs = self.list_dirs(path)
         for dir in dirs:
@@ -80,7 +80,7 @@ class TemplateManager():
                 output.append(dir)
         return output
 
-    def install(self, src='zip', dest='~/.cookiejar'):
+    def install(self, src='zip', dest='~/.minions/weaver'):
         #Check if dest is empty, if not, promt?
         #check if src is valid file, or dest valid file.
         #most of the time, dest should be default.
