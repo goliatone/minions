@@ -123,7 +123,7 @@ class BaseCommand(CommandMeta):
             )
         )
 
-    def __init__(self, name, parser=None, help='', aliases=(), stdout=None, stderr=None):
+    def __init__(self, name, parser=None, help=None, aliases=(), stdout=None, stderr=None):
 
         self.stdout = stdout or sys.stdout
         self.stderr = stderr or sys.stderr

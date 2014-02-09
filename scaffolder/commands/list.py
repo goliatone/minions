@@ -8,15 +8,7 @@ from scaffolder.core.template import TemplateManager
 
 class ListCommand(BaseCommand):
 
-    def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
-        help = 'Template command help entry'
-        parser = OptionParser(
-            version=self.get_version(),
-            option_list=self.get_option_list(),
-            usage='\n  %prog {0} [OPTIONS]'.format(name)
-        )
-        aliases = ('tmp',)
-        BaseCommand.__init__(self, name, parser=parser, help=help, aliases=aliases)
+    help = 'Template command help entry'
 
     def run(self, *args, **options):
         manger = TemplateManager()
