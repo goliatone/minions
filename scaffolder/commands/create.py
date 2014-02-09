@@ -33,18 +33,7 @@ class CreateCommand(BaseCommand):
         ),
     )
 
-    def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
-        help = 'Command to create project from a Project Template.'
-        aliases = ()
-        #TODO: Move to BaseCommand, create methods and have each subcommand override
-        parser = OptionParser(
-            version=self.get_version(),
-            option_list=self.get_option_list(),
-            usage=self.get_usage(name),
-            description='',
-            epilog=''
-        )
-        BaseCommand.__init__(self, name, parser=parser, help=help, aliases=aliases)
+    help = 'Command to create project from a Project Template.'
 
     def get_usage(self, name):
         return '\n  %prog {0} TEMPLATE_NAME [OPTIONS]\n \
