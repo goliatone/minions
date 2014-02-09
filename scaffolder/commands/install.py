@@ -19,15 +19,8 @@ class InstallCommand(BaseCommand):
         ),
     )
 
-    def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
-        help = 'install: Installs a Project Template.'
-        parser = OptionParser(
-            version=self.get_version(),
-            option_list=self.get_option_list(),
-            usage='\n  %prog {0} ACTION [OPTIONS]'.format(name)
-        )
-        aliases = ('tmp',)
-        BaseCommand.__init__(self, name, parser=parser, help=help, aliases=aliases)
+    help = 'Installs a Project Template.'
+
 
     def run(self, *args, **options):
         src = args[0]
