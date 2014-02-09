@@ -28,26 +28,7 @@ class VcsCommand(BaseCommand):
         ),
     )
 
-    def __init__(self, name, help='', aliases=(), stdout=None, stderr=None):
-        help = 'Command to clone github repos'
-        aliases = ('git','hg',)
-        #TODO: Move to BaseCommand, create methods and have each subcommand override
-        parser = OptionParser(
-            version=self.get_version(),
-            option_list=self.get_option_list(),
-            usage='\n  %prog {0} [OPTIONS] FILE...'.format(name),
-            description='',
-            epilog=''
-
-        )
-        BaseCommand.__init__(self, name, parser=parser, help=help, aliases=aliases)
-        # self.update_parser()
-
-    def update_parser(self):
-        self.parser.set_usage('%prog [OPTIONS] FILE...')
-        # self.parser.prog = '%s %s' % (self.parser.get_prog_name(), self.name)
-        self.parser.version = self.get_version()
-        self.parser.option_list = sorted(self.get_option_list())
+    help = 'Command to clone github repos'
 
     def run(self, *args, **options):
         url = options.get('url')
