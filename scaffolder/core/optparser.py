@@ -17,18 +17,31 @@ class CommandMeta(object):
         help is a short description of the command. If no parser is
         given, it defaults to a new, empty OptionParser.
         """
+        self.description=''
+        self.epilog=''
+
         self.name = name
 
-        self.help = help
+        if help:
+            self.help = help
 
         self.aliases = aliases
 
-        self.parser = parser or optparse.OptionParser()
+        self.parser = parser or self.get_parser()
 
         self.option_list = ()
 
     def get_option_list(self):
         return sorted(self.option_list, reverse=True)
+
+    def get_parser(self):
+        return optparse.OptionParser(
+            version=self.get_version(),
+            option_list=self.get_option_list(),
+            usage='\n  %prog {0} [OPTIONS] FILE...'.format(self.name),
+            description= self.description,
+            epilog= self.epilog
+        )
 
 class CommandOptionParser(optparse.OptionParser):
     """A variant of OptionParser that parses commands and their
