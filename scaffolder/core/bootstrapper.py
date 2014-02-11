@@ -97,12 +97,11 @@ class Context():
     Context object that holds values to be replaced
     in templated files and paths.
     """
-    def __init__(self, context_file=None):
+    def __init__(self, context_file=None, config=None):
         #@todo: Normalize path! realpath/expanduser
         self.context_file = os.path.expanduser(context_file)
         if context_file:
             self.load()
-        config = Config()
         self.config = config
         self.context = config.merge(self.context)
 
@@ -193,8 +192,9 @@ class Bootstrapper():
     """
     def config(self, template_path=None, context_file=None, output=None):
         self.hook = HookRunner()
+        self.config = Config()
         self.output = TemplateOutput(output)
-        self.context = Context(context_file)
+        self.context = Context(context_file, config=self.config)
         context = self.context.parse()
         self.template = Template(context=context, path=template_path)
         self.context.set_var('__src__', 'output')
