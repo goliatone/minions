@@ -4,11 +4,14 @@ import ConfigParser
 import os
 
 class Config():
+
     def __init__(self, path='~/.tmplater'):
+
+        self.path = path
+
         if '~' in path:
             self.path = os.path.expanduser(path)
-        else:
-            self.path = path
+
 
         if not os.path.isfile(self.path):
             print "File {0} does not exist".format(self.path)
