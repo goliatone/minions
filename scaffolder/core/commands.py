@@ -138,7 +138,7 @@ class BaseCommand(CommandMeta):
                 self.stderr.write(red('%s\n' % e))
                 sys.exit(1)
             else:
-                raise
+                self.exit_with_help(message=e.message)
 
     def run_from_argv(self, argv):
         argv = self.check_values(argv)
@@ -158,7 +158,7 @@ class BaseCommand(CommandMeta):
 
     def exit_with_help(self, message=None, color=red):
         if message:
-            print color(message)
+            print "%s\n" % color(message)
         self.parser.print_help()
         self.parser.exit()
 

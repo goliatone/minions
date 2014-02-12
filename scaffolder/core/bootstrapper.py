@@ -10,7 +10,7 @@ import re
 import glob
 import yaml
 from scaffolder import get_minion_path
-from scaffolder.core.utils import Utils, cp_recursive, commonprefix
+from scaffolder.core.utils import Utils, cp_recursive, commonprefix, assert_path
 from scaffolder.core.config import Config
 from scaffolder.core.hook import HookRunner
 
@@ -38,6 +38,7 @@ class TemplateOutput():
         if not path:
             return
         self.path = Utils.normalize_path(path, mkdir=True)
+        assert_path(self.path, Exception, "TemplateOutput path undefined")
 
     def move_to_target(self,project_template=None, target_path=None):
         cp_recursive(project_template, target_path)
@@ -70,6 +71,7 @@ class ProjectTemplate():
 
     def load(self):
         pass
+
     def set_path(self, path=None):
         if not path:
             return
@@ -118,13 +120,18 @@ class Context():
 
 
 class Template():
+
     def __init__(self, context=None, path=None, project_dir="#project#"):
         self.context = context
-        self.path = Utils.normalize_path(path)
+        self.set_path(path)
         self.name = os.path.basename(self.path)
         self.project_dir = project_dir
         self.compiled = []
         self.binaries = {}
+
+    def set_path(self, path):
+        self.path = Utils.normalize_path(path)
+        assert_path(self.path, Exception, "Template path undefined")
 
     def project_template(self):
         return os.path.join(self.path, self.project_dir)
