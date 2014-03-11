@@ -2,7 +2,7 @@
 
 import os
 import sys
-
+import re
 try:
     from setuptools import setup
 except ImportError:
@@ -17,9 +17,8 @@ sys.path.append(
 )
 
 import scaffolder
-
-print scaffolder.install_minion_config('weaver')
-exit()
+scaffolder.install_minion_config('weaver')
+#exit()
 
 home = os.path.expanduser("~")
 conf = os.path.join(home, ".minions", "weaver")
@@ -33,12 +32,37 @@ if 'publish' in sys.argv:
 readme = open('README.md').read()
 # history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
-requirements = [
-    'sh==1.08',
-]
-test_requires = []
-dev_requires = []
 
+def parse_requirements(file_name):
+    requirements = []
+    for line in open(file_name, 'r').read().split('\n'):
+        if re.match(r'(\s*#)|(\s*$)', line):
+            continue
+        if re.match(r'\s*-e\s+', line):
+            # TODO support version numbers
+            requirements.append(re.sub(r'\s*-e\s+.*#egg=(.*)$', r'\1', line))
+        elif re.match(r'\s*-f\s+', line):
+            pass
+        else:
+            requirements.append(line)
+
+    return requirements
+
+
+def parse_dependency_links(file_name):
+    dependency_links = []
+    for line in open(file_name, 'r').read().split('\n'):
+        if re.match(r'\s*-[ef]\s+', line):
+            dependency_links.append(re.sub(r'\s*-[ef]\s+', '', line))
+
+    return dependency_links
+
+
+test_requires = [
+    'nose==1.3.0',
+    'sure==1.2.2'
+]
+dev_requires = []
 
 setup(
     name='scaffolder',
@@ -54,12 +78,13 @@ setup(
     ],
     package_dir={'scaffolder': 'scaffolder'},
     entry_points={
-        'console_scripts':[
+        'console_scripts': [
             'scaffolder = scaffolder.cli:run',
         ]
     },
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=parse_requirements('requirements.txt'),
+    # dependency_links=parse_dependency_links('requirements.txt'),
     keywords='',
     test_suite='test',
     extras_require={
