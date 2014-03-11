@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from promptly import Form, console
-import yaml, json, os
+import yaml, json, os, sys
 
 
 def run():
@@ -19,27 +19,28 @@ def run():
     for field, value in metadata.iteritems():
         type = value.pop('type', 'string')
         prompt = value.pop('prompt', 'Value for %s' % field)
-        getattr(form.add, type)( field, prompt, **value)
+        getattr(form.add, type)(field, prompt, **value)
 
     console.run(form, prefix=prefix)
 
     return dict(form)
 
 
+def output(content, output_name='output.json'):
+    filename = os.path.join(os.path.dirname(__file__), output_name)
 
-def output(content):
-    filename = os.path.join(os.path.dirname(__file__), 'output.json')
-
-    with open (filename, 'w') as file:
-        json.dump(content,file)
+    with open(filename, 'w') as file:
+        json.dump(content, file)
 
     print(content)
 
 
 def main():
+    if len(sys.argv) > 1:
+        output_name = sys.argv[1]
 
     data = run()
-    output(data)
+    output(data, output_name=output_name)
 
 if __name__ == '__main__':
     main()
