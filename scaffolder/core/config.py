@@ -4,8 +4,8 @@ import ConfigParser
 import os
 
 class Config():
-
-    def __init__(self, path='~/.tmplater'):
+    #TODO: Remove hardcoded config path!
+    def __init__(self, path='~/.minions/weaver/.config'):
 
         self.path = path
 
