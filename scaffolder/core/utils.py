@@ -12,6 +12,7 @@ from subprocess import Popen, PIPE, call
 from scaffolder.vcs import VCS
 
 #TODO: Shoule we remove Utils and have static methods?
+#TODO: Utils.is_binary should be tested!!!
 class Utils():
     @classmethod
     def is_binary(cls, path):
@@ -28,7 +29,7 @@ class Utils():
 
     @classmethod
     def is_binary_unx(cls, path):
-        args = ["file", '-i', '-b', path]
+        args = ["file", path]
         o = Popen(args, stdout=PIPE).stdout.read()
         return re.search(r'text', o) is None
 
