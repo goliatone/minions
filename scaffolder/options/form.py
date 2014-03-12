@@ -36,6 +36,7 @@ def output(content, output_name='output.json'):
 
 
 def main():
+    output_name = 'output.json'
     if len(sys.argv) > 1:
         output_name = sys.argv[1]
 
