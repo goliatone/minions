@@ -19,6 +19,7 @@ def get_minion_path(minion=None):
     return os.path.join(get_minion_path(), minion)
 
 #TODO: This will break, need to use setup tools.
+#TODO: Install default config: ~/.minions/weaver/.config
 def install_minion_config(minion=None):
     if not os.path.isdir(get_minion_path()):
         os.mkdir(get_minion_path())
